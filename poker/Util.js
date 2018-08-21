@@ -49,14 +49,18 @@ Util.rnd = function (x, y) {
     return Math.floor(Math.random() * (x - y + 1) + x);
 };
 Util.gradeDown = function (poker1, poker2) {
-    return Util.pokerGrade[poker2['showTxt']] - Util.pokerGrade[poker1['showTxt']];
+    // return Util.pokerGrade[poker2['showTxt']] - Util.pokerGrade[poker1['showTxt']];
+    return (poker2 & 15) - (poker1 & 15);
 };
 Util.gradeUp = function (poker1, poker2) {
-    return Util.pokerGrade[poker1['showTxt']] - Util.pokerGrade[poker2['showTxt']];
+    // return Util.pokerGrade[poker1['showTxt']] - Util.pokerGrade[poker2['showTxt']];
+    return (poker2 & 15) - (poker1 & 15);
+
 };
 Util.isRightOrder = function (pokerShowTxtArray) {//判断是否为公差为1的等差数列
     for (let i = 0; i < pokerShowTxtArray.length - 1; i++) {
-        if (Util.pokerGrade[pokerShowTxtArray[i + 1]] - Util.pokerGrade[pokerShowTxtArray[i]] != 1) {
+        //if (Util.pokerGrade[pokerShowTxtArray[i + 1]] - Util.pokerGrade[pokerShowTxtArray[i]] != 1) {
+        if (pokerShowTxtArray[i + 1] -pokerShowTxtArray[i] != 1) {
             return false;
         }
     }

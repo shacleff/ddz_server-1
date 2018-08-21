@@ -1,3 +1,4 @@
+const Util = require("./util");
 function PokerTypeHandler() {
 }
 
@@ -35,13 +36,17 @@ PokerTypeHandler.prototype.shunzi = function (map, wrapper) {
         valueList.push(i);
     }
     console.log('valuelist:' + JSON.stringify(valueList));
-    if (Util.isRightOrder(valueList)) {
+    if (parseInt(valueList[-1]) < 12) {
+        if (Util.isRightOrder(valueList)) {
 
-        wrapper.headValue = valueList[0];
-        console.log('顺子: ' + JSON.stringify(wrapper));
-        return wrapper;
+            wrapper.headValue = valueList[0];
+            console.log('顺子: ' + JSON.stringify(wrapper));
+            return wrapper;
+        } else {
+            console.log("不是等差数列");
+            throw Util.EXCEPTION.WRONG_POKER_TYPE;
+        }
     } else {
-        console.log("不是等差数列");
         throw Util.EXCEPTION.WRONG_POKER_TYPE;
     }
 };
@@ -55,14 +60,19 @@ PokerTypeHandler.prototype.liandui = function (map, wrapper) {
         valueList.push(pvalue);
     }
     console.log('valueList:' + JSON.stringify(valueList));
-    if (Util.isRightOrder(valueList)) {
+    if (parseInt(valueList[-1]) < 12) {
+        if (Util.isRightOrder(valueList)) {
 
-        wrapper.headValue = valueList[0];
-        console.log('连对: ' + JSON.stringify(wrapper));
-        return wrapper;
+            wrapper.headValue = valueList[0];
+            console.log('连对: ' + JSON.stringify(wrapper));
+            return wrapper;
+        } else {
+            console.log("不是等差数列");
+            throw Util.EXCEPTION.WRONG_POKER_TYPE;
+        }
     } else {
-        console.log("不是等差数列");
         throw Util.EXCEPTION.WRONG_POKER_TYPE;
+
     }
 };
 
@@ -76,15 +86,20 @@ PokerTypeHandler.prototype.feiji = function (map, wrapper) {
         }
     }
     console.log('valueList:' + JSON.stringify(valueList));
-    if (Util.isRightOrder(valueList)) {
+    if (parseInt(valueList[-1]) < 12) {
+        if (Util.isRightOrder(valueList)) {
 
-        wrapper.headValue = valueList[0];
-        console.log('飞机: ' + JSON.stringify(wrapper));
-        return wrapper;
+            wrapper.headValue = valueList[0];
+            console.log('飞机: ' + JSON.stringify(wrapper));
+            return wrapper;
+        } else {
+            console.log("不是等差数列");
+            throw Util.EXCEPTION.WRONG_POKER_TYPE;
+
+        }
     } else {
-        console.log("不是等差数列");
+        console.log("顺子最大D是数字应该小于2");
         throw Util.EXCEPTION.WRONG_POKER_TYPE;
-
     }
 };
 

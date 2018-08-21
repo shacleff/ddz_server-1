@@ -1,5 +1,5 @@
 const config = require('./config');
-const Util = require('./Util');
+const Util = require('./util');
 let PokerData = {};
 PokerData.cardNo = ["A", 2, 3, 4, 5, 6, 7, 8, 9, 10, 'J', 'Q', 'K', 'g', 'G'];//g小王，G大王
 PokerData.showData = [];//定义整副扑克

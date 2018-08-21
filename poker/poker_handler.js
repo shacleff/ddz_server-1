@@ -1,5 +1,5 @@
-const PokerTypeHandler = require('./PokerTypeHandler');
-const Util = require('./Util');
+const PokerTypeHandler = require('./poker_type_handler');
+const Util = require('./util');
 
 function PokerMap() {//统计各种牌的数量
     this.size();
@@ -15,7 +15,8 @@ PokerMap.prototype.size = function () {
     return size;
 };
 
-function PokerWrapper(pokerList) {//出的一手牌的包装类，包括牌型，数量以及开始的牌大小
+//出的一手牌的包装类，包括牌型，数量以及开始的牌大小
+function PokerWrapper(pokerList) {
     this.size = pokerList.length;
     this.srcPoker = pokerList;
     this.headValue;
@@ -44,7 +45,7 @@ PokerPlay.prototype.getPokerWrapper = function (pokerList) {
     if (!pokerList || pokerList.length == 0)
         throw 'wrong poker length';
     let pokerWrapper = new PokerWrapper(pokerList);
-    if (pokerList.length == 2 && pokerList[0]['showTxt'] == 'g' && pokerList[1]['showTxt'] == "G") {
+    if (pokerList.length == 2 && (pokerList[0] >> 4) == 4 && (pokerList[1] >> 4) == 5) {
         pokerWrapper.headValue = 'g';
         pokerWrapper.pokerType = "wangzha";
         return pokerWrapper;
@@ -52,11 +53,11 @@ PokerPlay.prototype.getPokerWrapper = function (pokerList) {
     let pokerMap = new PokerMap();
     for (let i = 0; i < pokerList.length; i++) {
         let poker = pokerList[i];
-        let count = pokerMap[poker.showTxt];//不同数值牌的数量
+        let count = pokerMap[poker & 15];//不同数值牌的数量
         if (!count) {
             count = 0;
         }
-        pokerMap[poker.showTxt] = ++count;
+        pokerMap[poker & 15] = ++count;
     }
     console.log('map:' + JSON.stringify(pokerMap));
     let countList = [];// 每张相同牌值的数量数组
@@ -107,6 +108,9 @@ PokerPlay.prototype.getPokerWrapper = function (pokerList) {
         // throw Util.EXCEPTION.WRONG_POKER_TYPE;
     }
 };
+var pokerplay = new PokerPlay();//处理要出的牌
+var pl_wrapper = pokerplay.getPokerWrapper([0x18,0x19,0x17,0x1A,0x1B]);
+console.log(pl_wrapper)
 module.exports = PokerPlay;
 
 
