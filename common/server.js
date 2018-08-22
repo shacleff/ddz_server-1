@@ -34,7 +34,8 @@ proto.init = function () {
         // dict
         self.session[session.id] = session;
 
-        EventDispatcher.trigger("CREATE_SESSION", socket);
+        EventDispatcher.trigger("MSG_DDZ_PLAYER_CONNECTED", socket);
+        EventDispatcher.listen("MSG_DDZ_ENTER_TABLE");
         console.log("player connection is coming");
 
     });

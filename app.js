@@ -1,5 +1,6 @@
 ﻿let MyServer = require('./common/server');
 let PlayerManager = require("./common/player_manager");
+let TableManager = require("./game/table_manager");
 let PokerData = require('./poker/Poker');
 
 
@@ -7,6 +8,7 @@ let PokerData = require('./poker/Poker');
 function init() {
     let playerManager = new PlayerManager();
     playerManager.init();
+    TableManager.init();
     let port = 3001;
 
     let myServer = new MyServer(port);

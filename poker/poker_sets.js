@@ -17,7 +17,6 @@ PokerSets.prototype.generatePokers = function () {
         for (var i = 0; i < 4; i++) {
             for (var j = 0; j < 14; j++) {
                 this._pokers.push("0x" + i + j.toString(16));
-                console.log("0x" + i + j.toString(16));
             }
         }
         if (this.containJoker) {

@@ -6,7 +6,7 @@ function PlayerManager() {
 }
 
 PlayerManager.prototype.init = function () {
-    EventDispatcher.listen("CREATE_SESSION", this.onCreatePlayer, this);
+    EventDispatcher.listen("MSG_DDZ_PLAYER_CONNECTED", this.onCreatePlayer, this);
 };
 
 PlayerManager.prototype.onCreatePlayer = function (session) {
@@ -15,11 +15,11 @@ PlayerManager.prototype.onCreatePlayer = function (session) {
 
     this.players[player.accountId] = player;
 
-    player.regsiter('test', function(data) {
+    player.regsiter('MSG_DDZ_ENTER_TABLE', function(data) {
         console.log(data);
     });
 
     console.log("player is coming...");
-    player.sendMsg("test",{"test":"test"});
+    player.sendMsg("MSG_DDZ_PLAYER_CONNECTED",{cmd:"connected success"});
 };
 module.exports = PlayerManager;
