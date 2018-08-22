@@ -15,7 +15,7 @@ PokerSets.prototype.generatePokers = function () {
      */
     for (var p = 0; p < this.pairs; p++) {
         for (var i = 0; i < 4; i++) {
-            for (var j = 0; j < 14; j++) {
+            for (var j = 0; j < 13; j++) {
                 this._pokers.push("0x" + i + j.toString(16));
             }
         }

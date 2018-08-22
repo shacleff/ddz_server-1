@@ -1,6 +1,6 @@
 function Player(session) {
     this.socket = session;
-
+    this.socketId = this.socket.id;
     this.accountId = Player.ID;
     Player.ID++;
 
@@ -13,12 +13,17 @@ Player.prototype = {
     sendMsg: function (cmd, msg) {
         this.socket.emit(cmd, msg);
     },
+    joinTable: function (tableId) {
+        this.socket.join(tableId);
+    },
 
-    regsiter: function(cmd, callback) {
+    register: function(cmd, callback) {
+        console.log("player register");
+        var self = this;
         this.socket.on(cmd, function(data) {
             if (callback) {
                 console.log(data);
-                callback(data);
+                callback(data,self);
             }
         });
     },

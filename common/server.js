@@ -1,10 +1,13 @@
+const TableManager = require("../game/table_manager");
+const Game = require("../game/game");
+const express = require('express');
+const app = express();
+const server = require('http').createServer(app);
+const io = require('socket.io')(server);
+const EventDispatcher = require("./event_dispatcher");
+const Session = require("./session");
+const Player = require("./player");
 
-let express = require('express');
-let app = express();
-let server = require('http').createServer(app);
-let io = require('socket.io')(server);
-let EventDispatcher = require("./event_dispatcher");
-let Session = require("./session");
 function Server(port) {
     this.port = port;
 
@@ -14,28 +17,31 @@ function Server(port) {
 
 let proto = Server.prototype;
 
-proto.start = function() {
+proto.start = function () {
     server.listen(this.port);
 
     this.init();
 };
-proto.stop = function() {
+proto.stop = function () {
     server.stop();
 };
 proto.init = function () {
     let self = this;
-    io.on('connection', function(socket) {
+    let game = new Game(1,"ddz");
+    io.on('connection', function (socket) {
 
         // var clientIp = socket.getClientIp();    // ip + port
         // var clientMACaddr = socket.getMACsocket();
+        socket.emit("yourid",{id:socket.id});
+        console.log(socket.id);
 
         let session = new Session(socket);
 
         // dict
         self.session[session.id] = session;
-
+        let player = new Player(socket);
+        player.register("MSG_DDZ_ENTER_TABLE", game.onMsg);
         EventDispatcher.trigger("MSG_DDZ_PLAYER_CONNECTED", socket);
-        EventDispatcher.listen("MSG_DDZ_ENTER_TABLE");
         console.log("player connection is coming");
 
     });

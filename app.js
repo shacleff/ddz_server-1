@@ -1,19 +1,15 @@
-﻿let MyServer = require('./common/server');
-let PlayerManager = require("./common/player_manager");
-let TableManager = require("./game/table_manager");
-let PokerData = require('./poker/Poker');
+﻿const MyServer = require('./common/server');
+const PlayerManager = require("./common/player_manager");
+const TableManager = require("./game/table_manager");
+PlayerManager.init();
+TableManager.init();
 
 
-
+const PokerData = require('./poker/Poker');
 function init() {
-    let playerManager = new PlayerManager();
-    playerManager.init();
-    TableManager.init();
     let port = 3001;
-
     let myServer = new MyServer(port);
     myServer.start();
-
     console.log('server start success');
 }
 
