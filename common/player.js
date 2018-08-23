@@ -4,19 +4,31 @@ function Player(session) {
     this.accountId = Player.ID;
     Player.ID++;
 
+    // 玩家身上的每个属性都非常重要。绝对不要这样赋值。
+    // 都要通过addChip()这种方式修改。未来如果有多线程，也可以做原子性操作的控制。（加锁或者事务的方式）
+    // 这样加个数据库，就可以在各个接口函数判断属性是否发生改变，如果改变，则写入数据库并将需要同步给客户端的信息同步出去
     this.nickName = "jdakfdja;";
     this.coin = Math.random() * 10000;
     this.gender = Player.GENDER.SECRET;
+    
+    // 用来记录玩家在服务器中的位置。如果是多线程，需要考虑异步的问题，因为玩家可能出于‘正在进入某个游戏的状态’
+    // 正在‘离开某个游戏的状态’等等。
+    this.gameId = -1;
+    this.lastGameId = -1;
+    this.tableId = -1;
 }
 
 Player.prototype = {
     sendMsg: function (cmd, msg) {
         this.socket.emit(cmd, msg);
     },
+    
     joinTable: function (tableId) {
+        // 不是有个sendMsg的借口吗？ sendMsg({cmd:'joinTable', params: {}});
+        // socket.join是做什么的
         this.socket.join(tableId);
     },
-
+    
     register: function(cmd, callback) {
         console.log("player register");
         var self = this;
@@ -27,6 +39,68 @@ Player.prototype = {
             }
         });
     },
+    
+    // 增加coin，都必要使用该接口，
+    addCoin: function(coin) {
+        // 合法性判断
+        // 保持原子性操作
+        // 必须使用该接口加钱。（只能加，参数要判断不能为0也不能为负数）
+        if (coin <= 0) {
+            throw new error('加钱不能是负数');
+        }
+        this.coin += coin;
+        return this.coin;
+    },
+    
+    // 减少coin，都必要使用该接口，必要判断返回值！如果是true，才是扣钱成功
+    subtractCoin: function(coin) {
+        // 只能为整数，不能为负数，也不能为0
+        // 绝对不能将钱扣到负数
+        // 原子操作
+        if (this.coin < coin) {
+            // 如果是负的，就会越减越多
+            return false;
+        }
+        this.coin -= coin;
+        return true;
+    },
+    
+    // 这个借口只能是充值成功才能调用！！！因为会直接加钱
+    recharge: function(coin) {
+        // 充值借口
+        if (coin <= 0) {
+            return;
+        }
+        this.rechargeCount++;
+        this.rechargeTotal += coin;
+        this.addCoin(coin);
+    },
+    // 修改名字
+    modifyName: function(name) {
+        if (this.name === name) {
+            return;
+        }
+        
+        this.modifyNameCount++; // 好多游戏不是有第一次修改名字免费，后续收费么，而且这个也算是玩家的行为数据。大数据就靠这个积累
+        this.name = name;
+        
+        // 写入数据库，告诉客户端修改成功
+    },
+    
+    // 如果现成的nodejs可以支持继承，可以将一些业务逻辑的代码放到子类中去，HallPlayer = Player.extend();
+    onEnterGame: function(gameId) {
+       this.gameId = gameId;//当玩家成功进入某个游戏时，可以调用该方法，标记玩家在哪个游戏，当玩家掉线，在连回来时，服务器就知道应该拉回哪个游戏了
+    },
+    onLeaveGame: function() {
+        this.lastGameId = this.gameId;// 也可以记录上个游戏
+        this.gameId = -1;
+    },
+    onEnterTable: function(tableId) {
+        this.tableId = tableId;
+    },
+    onLeaveTable: function() {
+        this.tableId = -1;   
+    }
 };
 //删除已经出了的牌
 Player.prototype.del_poker = function (pokerToDel) {
