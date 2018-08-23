@@ -25,6 +25,7 @@ Table.prototype.onMsg = function (msg) {
     var cmd = msg["cmd"];
     console.log("table onMsg"+JSON.stringify(msg));
 // this._playerList = {};
+    // 不要用字符串，其他地方容易写错
     EventDispatcher.listen("MSG_DDZ_ENTER_TABLE", this.joinTable, this);
 
     switch (cmd) {
@@ -65,6 +66,7 @@ Table.prototype.endGame = function () {
 Table.prototype.dealPoker = function () {
     // 发牌
     this.generatePokers();
+    // 这个地方最好使用广播的借口，而且发送消息最好不要在这个‘发牌函数’内进行。‘发牌’就只做‘发牌’，未来可以添加其他的发牌机制，就只用修改这个方法就可以了
     for (var i = 0; i < 3; i++) {
         console.log(this.threePlayerPokers[i]);
         this._playerList[i].sendMsg("deal_poker", this.threePlayerPokers[i]);
@@ -100,6 +102,8 @@ Table.prototype.joinTable = function (playerId) {
      */
     console.log("jointable table"+this._playerList.length);
     console.log("table playerList length"+this._playerList.length);
+    // 通过方法访问，getPlayerById(id) getPlayers(ids) getAllPlayer();
+    // 不要通过属性访问
     var player = PlayerManager.players[playerId];
     player.joinTable(this._id);
     this._playerList.push(player);
