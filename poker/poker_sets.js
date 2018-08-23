@@ -13,6 +13,7 @@ PokerSets.prototype.generatePokers = function () {
      * 低4位表示点数 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14
      * 对应16进制牌0x10,0x11,0x12,0x13,0x14,0x15,0x16,0x17,0x18,0x19,0x1A,0x1B,0x1C,0x4D,0x5E
      */
+    // 几幅牌 不是pair吧
     for (var p = 0; p < this.pairs; p++) {
         for (var i = 0; i < 4; i++) {
             for (var j = 0; j < 13; j++) {
@@ -20,7 +21,9 @@ PokerSets.prototype.generatePokers = function () {
             }
         }
         if (this.containJoker) {
-            this._pokers.push("0x4d");//小王
+            // 最好是静态常量或者变量 Poker.BigJoker Poker.LittleJoker。这样，其他地方访问可以通过Poker来访问，
+            // 而不是通过字符串，可以防止写错或者数据结构变化，而只用修改一个地方
+            this._pokers.push("0x4d");//小王 
             this._pokers.push("0x5e");//大王
         }
     }
