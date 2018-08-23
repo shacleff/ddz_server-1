@@ -7,6 +7,7 @@ const io = require('socket.io')(server);
 const EventDispatcher = require("./event_dispatcher");
 const Session = require("./session");
 const Player = require("./player");
+const EventType = require("./event_type");
 
 function Server(port) {
     this.port = port;
@@ -27,12 +28,12 @@ proto.stop = function () {
 };
 proto.init = function () {
     let self = this;
-    let game = new Game(1,"ddz");
+    let game = new Game(1, "ddz");
     io.on('connection', function (socket) {
 
         // var clientIp = socket.getClientIp();    // ip + port
         // var clientMACaddr = socket.getMACsocket();
-        socket.emit("yourid",{id:socket.id});
+        socket.emit("yourid", {id: socket.id});
         console.log(socket.id);
 
         let session = new Session(socket);
@@ -40,7 +41,7 @@ proto.init = function () {
         // dict
         self.session[session.id] = session;
         let player = new Player(socket);
-        player.register("MSG_DDZ_ENTER_TABLE", game.onMsg);
+        player.register(EventType.MSG_DDZ_ENTER_TABLE, game.onMsg);
         EventDispatcher.trigger("MSG_DDZ_PLAYER_CONNECTED", socket);
         console.log("player connection is coming");
 

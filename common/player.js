@@ -1,8 +1,10 @@
+const EventType = require("./event_type");
 function Player(session) {
     this.socket = session;
     this.socketId = this.socket.id;
     this.accountId = Player.ID;
     Player.ID++;
+    this.tableId=null;
 
     // 玩家身上的每个属性都非常重要。绝对不要这样赋值。
     // 都要通过addChip()这种方式修改。未来如果有多线程，也可以做原子性操作的控制。（加锁或者事务的方式）
@@ -26,18 +28,22 @@ Player.prototype = {
     joinTable: function (tableId) {
         // 不是有个sendMsg的借口吗？ sendMsg({cmd:'joinTable', params: {}});
         // socket.join是做什么的
-        this.socket.join(tableId);
+        this.socket.join(tableId);//socketio的加入房间Api
     },
-    
+    //给房间广播
+    broadcastMsg:function(tableId,cmd,msg){
+        this.socket.to(tableId).emit(cmd,msg);
+    },
     register: function(cmd, callback) {
-        console.log("player register");
         var self = this;
         this.socket.on(cmd, function(data) {
             if (callback) {
-                console.log(data);
-                callback(data,self);
+                callback(data,self.socketId);
             }
         });
+    },
+    setTableId:function(id){
+        this.tableId = id;
     },
     
     // 增加coin，都必要使用该接口，
@@ -86,7 +92,6 @@ Player.prototype = {
         
         // 写入数据库，告诉客户端修改成功
     },
-    
     // 如果现成的nodejs可以支持继承，可以将一些业务逻辑的代码放到子类中去，HallPlayer = Player.extend();
     onEnterGame: function(gameId) {
        this.gameId = gameId;//当玩家成功进入某个游戏时，可以调用该方法，标记玩家在哪个游戏，当玩家掉线，在连回来时，服务器就知道应该拉回哪个游戏了

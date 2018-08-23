@@ -3,6 +3,8 @@ const Util = require("../poker/util");
 // const Player = require("../common/player");
 const EventDispatcher = require("../common/event_dispatcher");
 const PlayerManager = require("../common/player_manager");
+const EventType = require("../common/event_type");
+
 
 /**
  * 下面只是一个简单的模板，实际需要更多的接口
@@ -14,20 +16,15 @@ function Table(type, id) {
     this._type = type; // 桌子类型
     this._id = id; // 全局唯一的桌子ID
     this.pokers = new PokerSets(1, true).getPokers();//生成一副牌，带大小王
-    console.log(this.pokers.length+"poker ;enth");
     this._playerList = [];
+
 }
-
 let proto = Table.prototype;
-Table.prototype.onMsg = function (msg) {
 
+Table.prototype.onMsg = function (msg) {
 // 所有的桌子接受的消息都投递到这个借口
     var cmd = msg["cmd"];
-    console.log("table onMsg"+JSON.stringify(msg));
-// this._playerList = {};
-    // 不要用字符串，其他地方容易写错
-    EventDispatcher.listen("MSG_DDZ_ENTER_TABLE", this.joinTable, this);
-
+    console.log("table onMsg" + JSON.stringify(msg));
     switch (cmd) {
         case 'discard':
             // 出牌
@@ -43,16 +40,12 @@ Table.prototype.onMsg = function (msg) {
             this.startGame();
             break;
         case 'join':
-            console.log(this._id);
             this.joinTable(msg['player']);
             break;
 
     }
 };
 
-Table.prototype.broadcastMsg = function (idList, msg) {
-    // 根据idList找到所有的玩家，并广播消息
-};
 
 Table.prototype.startGame = function () {
     // 游戏开始
@@ -68,10 +61,9 @@ Table.prototype.dealPoker = function () {
     this.generatePokers();
     // 这个地方最好使用广播的借口，而且发送消息最好不要在这个‘发牌函数’内进行。‘发牌’就只做‘发牌’，未来可以添加其他的发牌机制，就只用修改这个方法就可以了
     for (var i = 0; i < 3; i++) {
-        console.log(this.threePlayerPokers[i]);
-        this._playerList[i].sendMsg("deal_poker", this.threePlayerPokers[i]);
+        this._playerList[i].sendMsg(EventType.MSG_DDZ_DEAL_POKER, this.threePlayerPokers[i]);
     }
-    return [];
+    // return [];
 };
 Table.prototype.generatePokers = function () {
     this.threePlayerPokers = [];
@@ -100,14 +92,23 @@ Table.prototype.joinTable = function (playerId) {
      * 2. 将玩家加入玩家列表(this._playerList)；
      * 3. 不能直接从外部直接将玩家加入_playerList
      */
-    console.log("jointable table"+this._playerList.length);
-    console.log("table playerList length"+this._playerList.length);
     // 通过方法访问，getPlayerById(id) getPlayers(ids) getAllPlayer();
     // 不要通过属性访问
-    var player = PlayerManager.players[playerId];
-    player.joinTable(this._id);
+    let player = PlayerManager.getPlayerById(playerId);
+    let all = [];
+    for(let i=0,len=this._playerList.length;i<len;i++){
+        all.push(this._playerList[i].accountId);
+    }
+    player.sendMsg(EventType.MSG_DDZ_ENTER_TABLE,{allPlayers:all});
     this._playerList.push(player);
-    if (this._playerList.length ===3) {
+    player.joinTable(this._id);
+    player.setTableId(this._id);
+    let index = this._playerList.indexOf(player);
+    //player.broadcastMsg(player.tableId,EventType.MSG_DDZ_ENTER_TABLE,{index:index});
+    var self = this;
+
+    player.register(EventType.MSG_DDZ_CHU_PAI, self.chuPai);
+    if (this._playerList.length === 3) {
         this.startGame();
         console.log("人数已满");
         return;
@@ -115,6 +116,20 @@ Table.prototype.joinTable = function (playerId) {
 
 
 };
+Table.prototype.chuPai = function (data,id) {
+    console.log(data);
+    var player = PlayerManager.getPlayerById(id);
+    player.broadcastMsg(player.tableId, EventType.MSG_DDZ_CHU_PAI, data);
+    //以下报错找不到此函数，找不到原因
+    //this.broadcastMsg(id,EventType.MSG_DDZ_CHU_PAI, data);
+};
+Table.prototype.broadcastMsg = function (id, cmd, msg) {
+    // 根据idList找到所有的玩家，并广播消息
+    var player = PlayerManager.getPlayerById(id);
+    player.broadcastMsg(player.tableId, cmd, msg);
+
+};
+
 Table.prototype.leaveTable = function (player) {
     /**
      * 玩家离开桌子的接口

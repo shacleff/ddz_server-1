@@ -16,7 +16,7 @@ let TableManager = {
             this._createTable(type, id);
             this.addTable(this._createTable(type, id));
         }
-        EventDispatcher.listen("MSG_DDZ_ENTER_TABLE", this._onEnterTable, this);
+        // EventDispatcher.listen("MSG_DDZ_ENTER_TABLE", this._onEnterTable, this);
 
     },
     addTable: function (table) {
@@ -36,8 +36,9 @@ let TableManager = {
         return new Table(type, id);
     },
 
-    _onEnterTable: function (playerId) {
-        // EventDispatcher.trigger("MSG_DDZ_ENTER_TABLE",player);
+    _onEnterTable: function (tableId,playerId) {
+        // EventDispatcher.trigger(EventType.MSG_DDZ_ENTER_TABLE,tableId);
+
     },
     _generatedId: function () {
         /**

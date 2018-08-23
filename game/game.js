@@ -1,4 +1,6 @@
 const TableManager = require("./table_manager");
+const EventType = require("../common/event_type");
+const EventDispatcher = require("../common/event_dispatcher");
 function Game(id, gameName) {
 	this.gameId = id;// 1 -> ddz
 	this.gameName = gameName;
@@ -8,13 +10,12 @@ let proto = Game.prototype;
 
 proto.onMsg = function(msg) {
 	let cmd = msg['cmd'];
-	console.log("game on msg");
-	console.log(msg);
     let tableId = msg['tableId'];
 
     let table = TableManager.getTableById(tableId);
-	
-	if (table) {
+    // EventDispatcher.listen(EventType.MSG_DDZ_ENTER_TABLE, table.joinTable, this);
+
+    if (table) {
         table.onMsg(msg);
 	} else {
 		console.error('...');
