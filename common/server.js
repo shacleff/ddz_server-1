@@ -42,7 +42,8 @@ proto.init = function () {
         self.session[session.id] = session;
         let player = new Player(socket);
         player.register(EventType.MSG_DDZ_ENTER_TABLE, game.onMsg);
-        EventDispatcher.trigger("MSG_DDZ_PLAYER_CONNECTED", socket);
+        player.register(EventType.MSG_DDZ_CHU_PAI, game.onMsg);
+        EventDispatcher.trigger(EventType.MSG_DDZ_PLAYER_CONNECTED, socket);
         console.log("player connection is coming");
 
     });
