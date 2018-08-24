@@ -97,14 +97,15 @@ Table.prototype.joinTable = function (playerId) {
     let player = PlayerManager.getPlayerById(playerId);
     let all = [];
     for(let i=0,len=this._playerList.length;i<len;i++){
-        all.push(this._playerList[i].accountId);
+        all.push({index:i,player:this._playerList[i].accountId});
     }
     player.sendMsg(EventType.MSG_DDZ_ENTER_TABLE,{allPlayers:all});
     this._playerList.push(player);
     player.joinTable(this._id);
     player.setTableId(this._id);
     let index = this._playerList.indexOf(player);
-    //player.broadcastMsg(player.tableId,EventType.MSG_DDZ_ENTER_TABLE,{index:index});
+    console.log({index:index,player:player.accountId});
+    player.broadcastMsg(player.tableId,EventType.MSG_DDZ_ENTER_TABLE,{index:index,player:player.accountId});
     var self = this;
 
     player.register(EventType.MSG_DDZ_CHU_PAI, self.chuPai);
