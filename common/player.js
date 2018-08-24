@@ -32,6 +32,7 @@ Player.prototype = {
     },
     //给房间广播
     broadcastMsg:function(tableId,cmd,msg){
+        console.log("广播消息"+cmd);
         this.socket.to(tableId).emit(cmd,msg);
     },
     register: function(cmd, callback) {
