@@ -22,6 +22,7 @@ function Player(session) {
 
 Player.prototype = {
     sendMsg: function (cmd, msg) {
+        console.log(cmd);
         this.socket.emit(cmd, msg);
     },
     

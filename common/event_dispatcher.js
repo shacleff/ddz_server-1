@@ -11,7 +11,7 @@ let EventDispatcher = {
             console.error("event handler is undefined!");
             return;
         }
-
+        console.log(eventName+"绑定事件");
         this._eventMap[eventName] = this._eventMap[eventName] || [];
 
         this._eventMap[eventName].push({
@@ -25,7 +25,6 @@ let EventDispatcher = {
             console.error("event name is undefined!");
             return;
         }
-
         let events = this._eventMap[eventName];
         if (!events) {
             console.error("events is undefined!");

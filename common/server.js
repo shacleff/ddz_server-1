@@ -42,7 +42,12 @@ proto.init = function () {
         self.session[session.id] = session;
         let player = new Player(socket);
         player.register(EventType.MSG_DDZ_ENTER_TABLE, game.onMsg);
-        player.register(EventType.MSG_DDZ_CHU_PAI, game.onMsg);
+        player.register(EventType.MSG_DDZ_DISCARD, game.onMsg);
+        player.register(EventType.MSG_DDZ_PASS, game.onMsg);
+        player.register(EventType.MSG_DDZ_ALL_TABLES, game.onMsg);
+        player.register(EventType.MSG_DDZ_GAME_OVER, game.onMsg);
+        let tables = TableManager.getAllTables();
+        socket.emit(EventType.MSG_DDZ_ALL_TABLES,{tables:tables});
         EventDispatcher.trigger(EventType.MSG_DDZ_PLAYER_CONNECTED, socket);
         console.log("player connection is coming");
 

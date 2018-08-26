@@ -11,7 +11,6 @@ function Game(id, gameName) {
 let proto = Game.prototype;
 
 proto.onMsg = function (msg) {
-    let cmd = msg['cmd'];
     let tableId;
     if (msg['tableId']) {
         tableId= msg['tableId'];
@@ -19,7 +18,7 @@ proto.onMsg = function (msg) {
         let player = PlayerManager.getPlayerById(msg["playerId"]);
         tableId = player.tableId;
     }
-
+    let tables = TableManager.getAllTables();
     let table = TableManager.getTableById(tableId);
     // EventDispatcher.listen(EventType.MSG_DDZ_ENTER_TABLE, table.joinTable, this);
 

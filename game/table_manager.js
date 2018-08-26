@@ -31,12 +31,18 @@ let TableManager = {
     getTableByRandom: function () {
         // return a table;
     },
-
+    getAllTables:function () {
+        var tables = [];
+        for (var i = 0;i<100;i++){
+            tables.push(i);
+        }
+        return tables;
+    },
     _createTable: function (type, id) {
         return new Table(type, id);
     },
 
-    _onEnterTable: function (tableId,playerId) {
+    _onEnterTable: function (tableId, playerId) {
         // EventDispatcher.trigger(EventType.MSG_DDZ_ENTER_TABLE,tableId);
 
     },
