@@ -46,7 +46,7 @@ Table.prototype.onMsg = function (msg) {
             this.joinTable(msg);
             break;
         case 'gameover':
-            this.gameover(msg);
+            this.endGame(msg);
             break;
 
     }
@@ -58,8 +58,12 @@ Table.prototype.startGame = function () {
     this.dealPoker();
 };
 
-Table.prototype.endGame = function () {
+Table.prototype.endGame = function (msg) {
     // 游戏结束，开始结算
+    console.log(msg);
+    let player = PlayerManager.getPlayerById(msg["playerId"]);
+    player.broadcastMsg(player.tableId, EventType.MSG_DDZ_GAME_OVER, {team: player.team, info: "game over"});//seatId为出完牌的玩家座位号
+    //结束比赛后其他操作，比如写入数据库
 };
 
 Table.prototype.dealPoker = function () {
@@ -69,6 +73,11 @@ Table.prototype.dealPoker = function () {
     for (var i = 0; i < this._playerList.length; i++) {
         console.log("给第" + (i + 1) + "个玩家发牌");
         console.log(this._playerList[i].socketId);
+        if (this.threePlayerPokers[i].length === 20) {
+            this._playerList[i].setTeam(1);
+        } else {
+            this._playerList[i].setTeam(0);
+        }
         this._playerList[i].sendMsg(EventType.MSG_DDZ_DEAL_POKER, this.threePlayerPokers[i]);
     }
     // return [];
@@ -118,10 +127,7 @@ Table.prototype.joinTable = function (msg) {
         player: player.accountId
 
     });
-
-
     //通知桌子内其他玩家，信息为本玩家的信息，以及位置
-
     if (this._playerList.length === 3) {
         var self = this;
         setTimeout(function () {//延迟三秒发牌，太快客户端事件绑定可能还未完成....
@@ -129,8 +135,6 @@ Table.prototype.joinTable = function (msg) {
             console.log("人数已满,开始发牌");
         }, 3000);
     }
-
-
 };
 Table.prototype.pass = function (data) {
     console.log(data);
@@ -154,12 +158,6 @@ Table.prototype.broadcastMsg = function (id, cmd, msg) {
     let player = PlayerManager.getPlayerById(id);
     player.broadcastMsg(player.tableId, cmd, msg);
 
-};
-Table.prototype.gameover= function(msg){
-    console.log();
-    let player = PlayerManager.getPlayerById(msg["playerId"]);
-    let seatId = this._playerList.indexOf(player);
-    player.broadcastMsg(player.tableId,EventType.MSG_DDZ_GAME_OVER,{seatId:seatId,info:"game over"});
 };
 Table.prototype.leaveTable = function (player) {
     /**

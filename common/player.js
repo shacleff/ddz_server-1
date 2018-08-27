@@ -12,7 +12,7 @@ function Player(session) {
     this.nickName = "jdakfdja;";
     this.coin = Math.random() * 10000;
     this.gender = Player.GENDER.SECRET;
-    
+    this.team = 0;
     // 用来记录玩家在服务器中的位置。如果是多线程，需要考虑异步的问题，因为玩家可能出于‘正在进入某个游戏的状态’
     // 正在‘离开某个游戏的状态’等等。
     this.gameId = -1;
@@ -47,7 +47,9 @@ Player.prototype = {
     setTableId:function(id){
         this.tableId = id;
     },
-    
+    setTeam:function(team){
+        this.team = team;
+    },
     // 增加coin，都必要使用该接口，
     addCoin: function(coin) {
         // 合法性判断

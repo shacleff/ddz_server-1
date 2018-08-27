@@ -18,7 +18,6 @@ proto.onMsg = function (msg) {
         let player = PlayerManager.getPlayerById(msg["playerId"]);
         tableId = player.tableId;
     }
-    let tables = TableManager.getAllTables();
     let table = TableManager.getTableById(tableId);
     // EventDispatcher.listen(EventType.MSG_DDZ_ENTER_TABLE, table.joinTable, this);
 
