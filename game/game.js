@@ -19,12 +19,11 @@ proto.onMsg = function (msg) {
         tableId = player.tableId;
     }
     let table = TableManager.getTableById(tableId);
-    // EventDispatcher.listen(EventType.MSG_DDZ_ENTER_TABLE, table.joinTable, this);
 
     if (table) {
         table.onMsg(msg);
     } else {
-        console.error('...');
+        console.error('no table...');
     }
 };
 

@@ -2,18 +2,24 @@ let Player = require("./player");
 let EventDispatcher = require("./event_dispatcher");
 const EventType = require("./event_type");
 const TableManager = require("../game/table_manager");
+const Game = require("../game/game");
 
 let PlayerManager = {
+    game:0,
     players: {},
     init: function () {
-
+        this.game = new Game(1,"ddz");
         EventDispatcher.listen(EventType.MSG_DDZ_PLAYER_CONNECTED, this.onCreatePlayer, this);
     },
     onCreatePlayer: function (session) {
         let player = new Player(session);
         this.players[player.socketId] = player;
         console.log("player is coming...");
-        //player.sendMsg(EventType.MSG_DDZ_PLAYER_CONNECTED, {tables: [1,2,3]});
+        player.register(EventType.MSG_DDZ_ENTER_TABLE, this.game.onMsg);
+        player.register(EventType.MSG_DDZ_DISCARD, this.game.onMsg);
+        player.register(EventType.MSG_DDZ_PASS, this.game.onMsg);
+        player.register(EventType.MSG_DDZ_ALL_TABLES, this.game.onMsg);
+        player.register(EventType.MSG_DDZ_GAME_OVER, this.game.onMsg);
     },
     getPlayerById(id) {
         return this.players[id];
