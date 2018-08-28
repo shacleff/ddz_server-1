@@ -9,12 +9,14 @@ let TableManager = {
     _tables: {},
     // 可以在app.js中初始化
     init: function () {
+        console.log("init table");
         // 这里可以在服务器启动时直接创建出很多桌子。
         for (let i = 0; i < 100; i++) {
             let type = 0, id = this._generatedId();
             this._createTable(type, id);
             this.addTable(this._createTable(type, id));
         }
+        console.log(this._tables[1]);
         // EventDispatcher.listen("MSG_DDZ_ENTER_TABLE", this._onEnterTable, this);
 
     },
@@ -35,6 +37,7 @@ let TableManager = {
         for (var i = 0;i<100;i++){
             tables.push(i);
         }
+
         return tables;
     },
     _createTable: function (type, id) {

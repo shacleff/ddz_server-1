@@ -11,6 +11,7 @@ function Game(id, gameName) {
 let proto = Game.prototype;
 
 proto.onMsg = function (msg) {
+    console.log(TableManager);
     let tableId;
     if (msg['tableId']) {
         tableId= msg['tableId'];
@@ -18,7 +19,7 @@ proto.onMsg = function (msg) {
         let player = PlayerManager.getPlayerById(msg["playerId"]);
         tableId = player.tableId;
     }
-    let table = TableManager.getTableById(tableId);
+    let table = TableManager.getTableById(tableId+"");
 
     if (table) {
         table.onMsg(msg);

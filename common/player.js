@@ -1,6 +1,6 @@
 const EventType = require("./event_type");
 function Player(session) {
-    this.socket = session;
+    this.socket = session.socket;
     this.socketId = this.socket.id;
     this.accountId = Player.ID;
     Player.ID++;
@@ -38,7 +38,7 @@ Player.prototype = {
     },
     register: function(cmd, callback) {
         var self = this;
-        this.socket.on(cmd, function(data) {
+        self.socket.on(cmd, function(data) {
             if (callback) {
                 callback(data,self.socketId);
             }
