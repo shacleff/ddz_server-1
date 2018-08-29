@@ -10,7 +10,6 @@ const EventType = require("../common/event_type");
  * 下面只是一个简单的模板，实际需要更多的接口
  * 这是游戏的主要的业务逻辑的处理！
  */
-// (function (Table) {
 
 function Table(type, id) {
     this._type = type; // 桌子类型
@@ -20,10 +19,9 @@ function Table(type, id) {
 
 }
 
-let proto = Table.prototype;
 
 Table.prototype.onMsg = function (msg) {
-// 所有的桌子接受的消息都投递到这个借口
+    // 所有的桌子接受的消息都投递到这个借口
     var cmd = msg["cmd"];
     console.log("table onMsg" + JSON.stringify(msg));
     switch (cmd) {
@@ -48,6 +46,9 @@ Table.prototype.onMsg = function (msg) {
         case 'gameover':
             this.endGame(msg);
             break;
+        case 'leave':
+            this.leaveTable(msg);
+            break;
 
     }
 };
@@ -62,7 +63,7 @@ Table.prototype.endGame = function (msg) {
     // 游戏结束，开始结算
     console.log(msg);
     let player = PlayerManager.getPlayerById(msg["playerId"]);
-    player.broadcastMsg(player.tableId, EventType.MSG_DDZ_GAME_OVER, {team: player.team, info: "game over"});//seatId为出完牌的玩家座位号
+    player.broadcastMsg(player.tableId, EventType.MSG_DDZ_GAME_OVER, { team: player.team, info: "game over" });//seatId为出完牌的玩家座位号
     //结束比赛后其他操作，比如写入数据库
 };
 
@@ -80,7 +81,6 @@ Table.prototype.dealPoker = function () {
         }
         this._playerList[i].sendMsg(EventType.MSG_DDZ_DEAL_POKER, this.threePlayerPokers[i]);
     }
-    // return [];
 };
 Table.prototype.generatePokers = function () {
     this.threePlayerPokers = [];
@@ -108,15 +108,15 @@ Table.prototype.joinTable = function (msg) {
      * 2. 将玩家加入玩家列表(this._playerList)；
      * 3. 不能直接从外部直接将玩家加入_playerList
      */
-        // 通过方法访问，getPlayerById(id) getPlayers(ids) getAllPlayer();
-        // 不要通过属性访问
+    // 通过方法访问，getPlayerById(id) getPlayers(ids) getAllPlayer();
+    // 不要通过属性访问
     let player = PlayerManager.getPlayerById(msg["playerId"]);
     let all = [];
     for (let i = 0, len = this._playerList.length; i < len; i++) {
-        all.push({index: i, player: this._playerList[i].accountId});//
+        all.push({ index: i, player: this._playerList[i].accountId });//
     }
     setTimeout(function () {
-        player.sendMsg(EventType.MSG_DDZ_ENTER_TABLE, {allPlayers: all});//发送给自己，信息为已连接的玩家
+        player.sendMsg(EventType.MSG_DDZ_ENTER_TABLE, { allPlayers: all });//发送给自己，信息为已连接的玩家
     }, 1000);
 
     this._playerList.push(player);
@@ -139,7 +139,7 @@ Table.prototype.joinTable = function (msg) {
 Table.prototype.pass = function (data) {
     console.log(data);
     let player = PlayerManager.getPlayerById(data["playerId"]);
-    player.broadcastMsg(player.tableId, EventType.MSG_DDZ_PASS, {seatId: this._playerList.indexOf(player)});
+    player.broadcastMsg(player.tableId, EventType.MSG_DDZ_PASS, { seatId: this._playerList.indexOf(player) });
 };
 Table.prototype.discard = function (data) {
     console.log(data);
@@ -159,13 +159,19 @@ Table.prototype.broadcastMsg = function (id, cmd, msg) {
     player.broadcastMsg(player.tableId, cmd, msg);
 
 };
-Table.prototype.leaveTable = function (player) {
+Table.prototype.leaveTable = function (msg) {
     /**
      * 玩家离开桌子的接口
      * 1. 任何玩家想要离开桌子，必须通过该方法
      * 2. 不能直接从外部直接将玩家从_playerList中移除！！
      *
      */
+    let player = PlayerManager.getPlayerById(msg["playerId"]);
+    let i = this._playerList.indexOf(player);
+    this._playerList.splice(i,1);
+    player.leaveTable(player.tableId);
+    console.log(player.accountId+"：离开了房间,"+" 剩余玩家人数: "+this._playerList.length);
+
 };
 
 Table.prototype.startTimer = function (callback, interval, repeat, delay) {

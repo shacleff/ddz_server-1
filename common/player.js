@@ -31,6 +31,9 @@ Player.prototype = {
         // socket.join是做什么的
         this.socket.join(tableId);//socketio的加入房间Api
     },
+    leaveTable:function(tableId){
+        this.socket.leave(tableId);
+    },
     //给房间广播
     broadcastMsg:function(tableId,cmd,msg){
         console.log("广播消息"+cmd);

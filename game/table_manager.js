@@ -16,8 +16,6 @@ let TableManager = {
             this._createTable(type, id);
             this.addTable(this._createTable(type, id));
         }
-        console.log(this._tables[1]);
-        // EventDispatcher.listen("MSG_DDZ_ENTER_TABLE", this._onEnterTable, this);
 
     },
     addTable: function (table) {

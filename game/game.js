@@ -11,7 +11,6 @@ function Game(id, gameName) {
 let proto = Game.prototype;
 
 proto.onMsg = function (msg) {
-    console.log(TableManager);
     let tableId;
     if (msg['tableId']) {
         tableId= msg['tableId'];
