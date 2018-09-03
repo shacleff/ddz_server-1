@@ -1,9 +1,8 @@
 const PokerSets = require("../poker/poker_sets");
 const Util = require("../poker/util");
 // const Player = require("../common/player");
-const EventDispatcher = require("../common/event_dispatcher");
-const PlayerManager = require("../common/player_manager");
 const EventType = require("../common/event_type");
+const LOG = require("../log/jl_log");
 
 
 /**
@@ -16,6 +15,8 @@ function Table(type, id) {
     this._id = id; // 全局唯一的桌子ID
     this.pokers = new PokerSets(1, true).getPokers();//生成一副牌，带大小王
     this._playerList = [];
+    this._dipai = [];
+    this.landlord = -1;
 
 }
 
@@ -62,8 +63,8 @@ Table.prototype.startGame = function () {
 Table.prototype.endGame = function (msg) {
     // 游戏结束，开始结算
     console.log(msg);
-    let player = PlayerManager.getPlayerById(msg["playerId"]);
-    player.broadcastMsg(player.tableId, EventType.MSG_DDZ_GAME_OVER, { team: player.team, info: "game over" });//seatId为出完牌的玩家座位号
+    let player = global.playerManager.getPlayerById(msg["playerId"]);
+    player.broadcastMsg(player.tableId, EventType.MSG_DDZ_GAME_OVER, {team: player.team, info: "game over"});//seatId为出完牌的玩家座位号
     //结束比赛后其他操作，比如写入数据库
 };
 
@@ -71,21 +72,24 @@ Table.prototype.dealPoker = function () {
     // 发牌
     this.generatePokers();
     // 这个地方最好使用广播的借口，而且发送消息最好不要在这个‘发牌函数’内进行。‘发牌’就只做‘发牌’，未来可以添加其他的发牌机制，就只用修改这个方法就可以了
+    let landlord_index = Math.floor(Math.random() * 3);
+    this._playerList[landlord_index].setTeam(1);
     for (var i = 0; i < this._playerList.length; i++) {
         console.log("给第" + (i + 1) + "个玩家发牌");
         console.log(this._playerList[i].socketId);
-        if (this.threePlayerPokers[i].length === 20) {
-            this._playerList[i].setTeam(1);
-        } else {
-            this._playerList[i].setTeam(0);
-        }
-        this._playerList[i].sendMsg(EventType.MSG_DDZ_DEAL_POKER, this.threePlayerPokers[i]);
+        this.landlord = landlord_index;
+        this._playerList[i].sendMsg(EventType.MSG_DDZ_DEAL_POKER, {
+            landlord: this.landlord,
+            pokers: this.threePlayerPokers[i],
+            dipai: this._dipai
+        });
+
     }
 };
 Table.prototype.generatePokers = function () {
     this.threePlayerPokers = [];
     let allPokers = this.pokers;
-    for (let i = 0; i < 2; i++) {//生成2个17张的扑克组合并放入3个玩家扑克的数组中
+    for (let i = 0; i < 3; i++) {//生成2个17张的扑克组合并放入3个玩家扑克的数组中
         let bodyPokerDataItem = [];
         for (let j = 0; j < 17; j++) {
             let num = Math.floor(Math.random() * (allPokers.length));//随机抽取
@@ -95,7 +99,8 @@ Table.prototype.generatePokers = function () {
         }
         this.threePlayerPokers.push(bodyPokerDataItem);
     }
-    this.threePlayerPokers.push(allPokers);//把剩余的20张放入3个玩家扑克数组中，20张的为地主
+    // this.threePlayerPokers.push(bodyPokerDataItem);
+    this._dipai = allPokers;
     for (let i = 0; i < 3; i++) {//排序
         this.threePlayerPokers[i].sort(Util.gradeDown);
     }
@@ -108,15 +113,17 @@ Table.prototype.joinTable = function (msg) {
      * 2. 将玩家加入玩家列表(this._playerList)；
      * 3. 不能直接从外部直接将玩家加入_playerList
      */
-    // 通过方法访问，getPlayerById(id) getPlayers(ids) getAllPlayer();
-    // 不要通过属性访问
-    let player = PlayerManager.getPlayerById(msg["playerId"]);
+        // 通过方法访问，getPlayerById(id) getPlayers(ids) getAllPlayer();
+        // 不要通过属性访问
+    console.log(msg);
+    console.log(global.playerManager.players);
+    let player = global.playerManager.getPlayerById(msg["playerId"]);
     let all = [];
     for (let i = 0, len = this._playerList.length; i < len; i++) {
-        all.push({ index: i, player: this._playerList[i].accountId });//
+        all.push({index: i, player: this._playerList[i].accountId});//
     }
     setTimeout(function () {
-        player.sendMsg(EventType.MSG_DDZ_ENTER_TABLE, { allPlayers: all });//发送给自己，信息为已连接的玩家
+        player.sendMsg(EventType.MSG_DDZ_ENTER_TABLE, {allPlayers: all});//发送给自己，信息为已连接的玩家
     }, 1000);
 
     this._playerList.push(player);
@@ -138,12 +145,12 @@ Table.prototype.joinTable = function (msg) {
 };
 Table.prototype.pass = function (data) {
     console.log(data);
-    let player = PlayerManager.getPlayerById(data["playerId"]);
-    player.broadcastMsg(player.tableId, EventType.MSG_DDZ_PASS, { seatId: this._playerList.indexOf(player) });
+    let player = global.playerManager.getPlayerById(data["playerId"]);
+    player.broadcastMsg(player.tableId, EventType.MSG_DDZ_PASS, {seatId: this._playerList.indexOf(player)});
 };
 Table.prototype.discard = function (data) {
     console.log(data);
-    let player = PlayerManager.getPlayerById(data["playerId"]);
+    let player = global.playerManager.getPlayerById(data["playerId"]);
     let seatId = this._playerList.indexOf(player);
     let msg = {
         seatId: seatId,
@@ -155,7 +162,7 @@ Table.prototype.discard = function (data) {
 };
 Table.prototype.broadcastMsg = function (id, cmd, msg) {
     // 根据idList找到所有的玩家，并广播消息
-    let player = PlayerManager.getPlayerById(id);
+    let player = global.playerManager.getPlayerById(id);
     player.broadcastMsg(player.tableId, cmd, msg);
 
 };
@@ -166,11 +173,11 @@ Table.prototype.leaveTable = function (msg) {
      * 2. 不能直接从外部直接将玩家从_playerList中移除！！
      *
      */
-    let player = PlayerManager.getPlayerById(msg["playerId"]);
+    let player = global.playerManager.getPlayerById(msg["playerId"]);
     let i = this._playerList.indexOf(player);
-    this._playerList.splice(i,1);
+    this._playerList.splice(i, 1);
     player.leaveTable(player.tableId);
-    console.log(player.accountId+"：离开了房间,"+" 剩余玩家人数: "+this._playerList.length);
+    console.log(player.accountId + "：离开了房间," + " 剩余玩家人数: " + this._playerList.length);
 
 };
 

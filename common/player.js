@@ -1,15 +1,16 @@
 const EventType = require("./event_type");
+
 function Player(session) {
     this.socket = session.socket;
     this.socketId = this.socket.id;
     this.accountId = Player.ID;
     Player.ID++;
-    this.tableId=null;
-
+    this.tableId = null;
+    this.password = null;
     // 玩家身上的每个属性都非常重要。绝对不要这样赋值。
     // 都要通过addChip()这种方式修改。未来如果有多线程，也可以做原子性操作的控制。（加锁或者事务的方式）
     // 这样加个数据库，就可以在各个接口函数判断属性是否发生改变，如果改变，则写入数据库并将需要同步给客户端的信息同步出去
-    this.nickName = "jdakfdja;";
+    this.name = "jdakfdja;";
     this.coin = Math.random() * 10000;
     this.gender = Player.GENDER.SECRET;
     this.team = 0;
@@ -25,36 +26,39 @@ Player.prototype = {
         console.log(cmd);
         this.socket.emit(cmd, msg);
     },
-    
+
     joinTable: function (tableId) {
         // 不是有个sendMsg的借口吗？ sendMsg({cmd:'joinTable', params: {}});
         // socket.join是做什么的
         this.socket.join(tableId);//socketio的加入房间Api
     },
-    leaveTable:function(tableId){
+    leaveTable: function (tableId) {
         this.socket.leave(tableId);
     },
     //给房间广播
-    broadcastMsg:function(tableId,cmd,msg){
-        console.log("广播消息"+cmd);
-        this.socket.to(tableId).emit(cmd,msg);
+    broadcastMsg: function (tableId, cmd, msg) {
+        console.log("广播消息" + cmd);
+        this.socket.to(tableId).emit(cmd, msg);
     },
-    register: function(cmd, callback) {
-        var self = this;
-        self.socket.on(cmd, function(data) {
+    register: function (cmd, callback, scope) {
+        let self = this;
+        self.socket.on(cmd, function (data) {
             if (callback) {
-                callback(data,self.socketId);
+                callback.call(scope,data, self);
             }
         });
     },
-    setTableId:function(id){
+    setTableId: function (id) {
         this.tableId = id;
     },
-    setTeam:function(team){
+    setTeam: function (team) {
         this.team = team;
     },
+    getCoin:function(){
+        return this.coin;
+    },
     // 增加coin，都必要使用该接口，
-    addCoin: function(coin) {
+    addCoin: function (coin) {
         // 合法性判断
         // 保持原子性操作
         // 必须使用该接口加钱。（只能加，参数要判断不能为0也不能为负数）
@@ -64,9 +68,9 @@ Player.prototype = {
         this.coin += coin;
         return this.coin;
     },
-    
+
     // 减少coin，都必要使用该接口，必要判断返回值！如果是true，才是扣钱成功
-    subtractCoin: function(coin) {
+    subtractCoin: function (coin) {
         // 只能为整数，不能为负数，也不能为0
         // 绝对不能将钱扣到负数
         // 原子操作
@@ -77,9 +81,9 @@ Player.prototype = {
         this.coin -= coin;
         return true;
     },
-    
+
     // 这个借口只能是充值成功才能调用！！！因为会直接加钱
-    recharge: function(coin) {
+    recharge: function (coin) {
         // 充值借口
         if (coin <= 0) {
             return;
@@ -88,31 +92,50 @@ Player.prototype = {
         this.rechargeTotal += coin;
         this.addCoin(coin);
     },
+    setName: function (name) {
+        this.name = name;
+    },
+    getName: function () {
+        return this.name;
+    },
+    setGender: function (gender) {
+        this.gender = gender;
+    },
+    getGender: function () {
+        return this.gender;
+    },
+    setPassword(pwd) {
+        this.password = pwd;
+    },
+    getPassword() {
+        return this.password;
+    },
     // 修改名字
-    modifyName: function(name) {
+    modifyName: function (name) {
         if (this.name === name) {
             return;
         }
-        
+
         this.modifyNameCount++; // 好多游戏不是有第一次修改名字免费，后续收费么，而且这个也算是玩家的行为数据。大数据就靠这个积累
         this.name = name;
-        
+
         // 写入数据库，告诉客户端修改成功
     },
     // 如果现成的nodejs可以支持继承，可以将一些业务逻辑的代码放到子类中去，HallPlayer = Player.extend();
-    onEnterGame: function(gameId) {
-       this.gameId = gameId;//当玩家成功进入某个游戏时，可以调用该方法，标记玩家在哪个游戏，当玩家掉线，在连回来时，服务器就知道应该拉回哪个游戏了
+    onEnterGame: function (gameId) {
+        this.gameId = gameId;//当玩家成功进入某个游戏时，可以调用该方法，标记玩家在哪个游戏，当玩家掉线，在连回来时，服务器就知道应该拉回哪个游戏了
     },
-    onLeaveGame: function() {
+    onLeaveGame: function () {
         this.lastGameId = this.gameId;// 也可以记录上个游戏
         this.gameId = -1;
     },
-    onEnterTable: function(tableId) {
+    onEnterTable: function (tableId) {
         this.tableId = tableId;
     },
-    onLeaveTable: function() {
-        this.tableId = -1;   
+    onLeaveTable: function () {
+        this.tableId = -1;
     }
+
 };
 //删除已经出了的牌
 Player.prototype.del_poker = function (pokerToDel) {
@@ -127,8 +150,8 @@ Player.prototype.del_poker = function (pokerToDel) {
 };
 Player.ID = 0;
 Player.GENDER = {
-  MALE: 1,
-  FEMALE: 2,
-  SECRET: 3
+    MALE: 1,
+    FEMALE: 2,
+    SECRET: 3
 };
 module.exports = Player;

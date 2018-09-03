@@ -1,15 +1,20 @@
-﻿const MyServer = require('./common/server');
-const PlayerManager = require("./common/player_manager");
-const TableManager = require("./game/table_manager");
+﻿const LOG = require("./log/jl_log");
+const MyServer = require('./common/server');
+const Global = require("./game/table_manager");
+const Gp = require("./common/player_manager");
 
 
 function init() {
-    PlayerManager.init();
-    TableManager.init();
+    let tableManager = new Global.TableManager();
+    let playerManager = new Gp.PlayerManager();
+    global.tableManager = tableManager;
+    global.tableManager.init();
+    global.playerManager = playerManager;
+    global.playerManager.init();
     let port = 3001;
     let myServer = new MyServer(port);
     myServer.start();
-    console.log('server start success');
+    LOG.Info("server started......");
 }
 
 // init
