@@ -17,6 +17,8 @@ function Table(type, id) {
     this._playerList = [];
     this._dipai = [];
     this.landlord = -1;
+    this.times = -1;
+    this._preparedList = [];
 
 }
 
@@ -24,7 +26,7 @@ function Table(type, id) {
 Table.prototype.onMsg = function (msg) {
     // 所有的桌子接受的消息都投递到这个借口
     var cmd = msg["cmd"];
-    console.log("table onMsg" + JSON.stringify(msg));
+    console.log("table onMsg: " + JSON.stringify(msg));
     switch (cmd) {
         case 'discard':
             console.log("discard");
@@ -36,6 +38,9 @@ Table.prototype.onMsg = function (msg) {
             break;
         case 'prepare':
             // 准备
+            console.log("zhubei");
+            console.log(msg);
+            this.prepare(msg);
             break;
         // 可以添加更多相关的接口
         case 'start':
@@ -73,13 +78,13 @@ Table.prototype.dealPoker = function () {
     this.generatePokers();
     // 这个地方最好使用广播的借口，而且发送消息最好不要在这个‘发牌函数’内进行。‘发牌’就只做‘发牌’，未来可以添加其他的发牌机制，就只用修改这个方法就可以了
     let landlord_index = Math.floor(Math.random() * 3);
+    this.landlord = landlord_index;
     this._playerList[landlord_index].setTeam(1);
     for (var i = 0; i < this._playerList.length; i++) {
         console.log("给第" + (i + 1) + "个玩家发牌");
         console.log(this._playerList[i].socketId);
-        this.landlord = landlord_index;
         this._playerList[i].sendMsg(EventType.MSG_DDZ_DEAL_POKER, {
-            landlord: this.landlord,
+            landlord: landlord_index,
             pokers: this.threePlayerPokers[i],
             dipai: this._dipai
         });
@@ -113,10 +118,9 @@ Table.prototype.joinTable = function (msg) {
      * 2. 将玩家加入玩家列表(this._playerList)；
      * 3. 不能直接从外部直接将玩家加入_playerList
      */
-        // 通过方法访问，getPlayerById(id) getPlayers(ids) getAllPlayer();
-        // 不要通过属性访问
+    // 通过方法访问，getPlayerById(id) getPlayers(ids) getAllPlayer();
+    // 不要通过属性访问
     console.log(msg);
-    console.log(global.playerManager.players);
     let player = global.playerManager.getPlayerById(msg["playerId"]);
     let all = [];
     for (let i = 0, len = this._playerList.length; i < len; i++) {
@@ -135,12 +139,19 @@ Table.prototype.joinTable = function (msg) {
 
     });
     //通知桌子内其他玩家，信息为本玩家的信息，以及位置
-    if (this._playerList.length === 3) {
-        var self = this;
+
+};
+Table.prototype.prepare = function (data) {
+    let player = global.playerManager.getPlayerById(data["playerId"]);
+    this._preparedList.push(this._playerList.indexOf(player));
+    player.sendMsg(EventType.MSG_DDZ_PLAYER_PREPARED, {seatId: player.seatId});
+    if (this._preparedList.length === 3) {
+        let self = this;
         setTimeout(function () {//延迟三秒发牌，太快客户端事件绑定可能还未完成....
             self.startGame();
             console.log("人数已满,开始发牌");
         }, 3000);
+        this._preparedList = [];
     }
 };
 Table.prototype.pass = function (data) {
@@ -177,7 +188,7 @@ Table.prototype.leaveTable = function (msg) {
     let i = this._playerList.indexOf(player);
     this._playerList.splice(i, 1);
     player.leaveTable(player.tableId);
-    console.log(player.accountId + "：离开了房间," + " 剩余玩家人数: " + this._playerList.length);
+    console.log(player.seatId + "：离开了房间," + " 剩余玩家人数: " + this._playerList.length);
 
 };
 

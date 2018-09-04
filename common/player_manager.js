@@ -87,10 +87,12 @@ let Gp;
         onAutherror_code: function (player) {
             this.initPlayer(player);
             player.register(EventType.MSG_DDZ_ENTER_TABLE, this.game.onMsg);
+            player.register(EventType.MSG_DDZ_PLAYER_PREPARED, this.game.onMsg);
             player.register(EventType.MSG_DDZ_DISCARD, this.game.onMsg);
             player.register(EventType.MSG_DDZ_PASS, this.game.onMsg);
             player.register(EventType.MSG_DDZ_ALL_TABLES, this.game.onMsg);
             player.register(EventType.MSG_DDZ_GAME_OVER, this.game.onMsg);
+            player.register(EventType.MSG_DDZ_PLAYER_LEAVE, this.game.onMsg);
         },
         onPlayerAuth: function (msg, player) {
             let cmd = msg["cmd"];
