@@ -1,5 +1,5 @@
 ﻿const LOG = require("./log/jl_log");
-const MyServer = require('./common/server');
+const MyServer = require('./web/server');
 const Global = require("./game/table_manager");
 const Gp = require("./common/player_manager");
 

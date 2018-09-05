@@ -1,12 +1,11 @@
 const TableManager = require("../game/table_manager");
-const express = require('express');
-const app = express();
+const app = require("./app");
 const server = require('http').createServer(app);
 const io = require('socket.io')(server);
-const EventDispatcher = require("./event_dispatcher");
-const Session = require("./session");
-const Player = require("./player");
-const EventType = require("./event_type");
+const EventDispatcher = require("../common/event_dispatcher");
+const Session = require("../common/session");
+const Player = require("../common/player");
+const EventType = require("../common/event_type");
 const LOG = require("../log/jl_log");
 const axios = require("axios");
 function Server(port) {
