@@ -16,13 +16,14 @@ var responseJSON = function (res, ret) {
       res.json(ret); 
   }};
 // 添加用户
-router.get('/addUser', function(req, res, next){
+router.post('/addUser', function(req, res, next){
  // 从连接池获取连接 
 pool.getConnection(function(err, connection) { 
 // 获取前台页面传过来的参数  
- var param = req.query || req.params;   
+ var param = req.query || req.params;
+ console.log(req.body);   
 // 建立连接 增加一个用户信息 
-connection.query(userSQL.insert, [param.uid,param.name], function(err, result) {
+connection.query(userSQL.insert, [param.username,param.password], function(err, result) {
         if(result) {      
              result = {   
                       code: 200,   
