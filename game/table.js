@@ -13,7 +13,7 @@ const LOG = require("../log/jl_log");
 function Table(type, id) {
     this._type = type; // 桌子类型
     this._id = id; // 全局唯一的桌子ID
-    this.pokers = new PokerSets(1, true).getPokers();//生成一副牌，带大小王
+
     this._playerList = [];
     this._dipai = [];
     this.landlord = -1;
@@ -68,6 +68,7 @@ Table.prototype.startGame = function () {
 Table.prototype.endGame = function (msg) {
     // 游戏结束，开始结算
     console.log(msg);
+    this._preparedList=[];
     let player = global.playerManager.getPlayerById(msg["playerId"]);
     player.broadcastMsg(player.tableId, EventType.MSG_DDZ_GAME_OVER, {team: player.team, info: "game over"});//seatId为出完牌的玩家座位号
     //结束比赛后其他操作，比如写入数据库
@@ -82,6 +83,7 @@ Table.prototype.dealPoker = function () {
     this._playerList[landlord_index].setTeam(1);
     for (var i = 0; i < this._playerList.length; i++) {
         console.log("给第" + (i + 1) + "个玩家发牌");
+        console.log(this.threePlayerPokers[i])
         console.log(this._playerList[i].socketId);
         this._playerList[i].sendMsg(EventType.MSG_DDZ_DEAL_POKER, {
             landlord: landlord_index,
@@ -93,7 +95,10 @@ Table.prototype.dealPoker = function () {
 };
 Table.prototype.generatePokers = function () {
     this.threePlayerPokers = [];
+    this.pokers = new PokerSets(1, true).getPokers();//生成一副牌，带大小王
     let allPokers = this.pokers;
+    console.log("generate pokers");
+    console.log(this.pokers);
     for (let i = 0; i < 3; i++) {//生成2个17张的扑克组合并放入3个玩家扑克的数组中
         let bodyPokerDataItem = [];
         for (let j = 0; j < 17; j++) {
@@ -151,7 +156,6 @@ Table.prototype.prepare = function (data) {
             self.startGame();
             console.log("人数已满,开始发牌");
         }, 3000);
-        this._preparedList = [];
     }
 };
 Table.prototype.pass = function (data) {
@@ -191,7 +195,13 @@ Table.prototype.leaveTable = function (msg) {
     console.log(player.seatId + "：离开了房间," + " 剩余玩家人数: " + this._playerList.length);
 
 };
-
+Table.prototype.onDisconnect=function(data){
+    let player = global.playerManager.getPlayerById(data.id);
+    let i = this._playerList.indexOf(player);
+    player.leaveTable(player.tableId);
+    console.log(player.seatId + "：断开了链接链接," + " 剩余玩家人数: " + this._playerList.length);
+    this._playerList.splice(i, 1);
+},
 Table.prototype.startTimer = function (callback, interval, repeat, delay) {
     // 启动一个定时器
     var timer = new Timer();	// Timer也是一个基础类，可以找下js有没有一些好的类库，已经封装了Timer,也可以用setTimerout, setInterval自己封装下

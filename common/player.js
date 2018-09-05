@@ -51,6 +51,7 @@ Player.prototype = {
     setTableId: function (id) {
         this.tableId = id;
     },
+    
     setTeam: function (team) {
         this.team = team;
     },

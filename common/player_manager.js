@@ -19,8 +19,9 @@ let Gp;
         players: {},
 
         init: function () {
-            EventDispatcher.listen(EventType.MSG_DDZ_PLAYER_CONNECTED, this.onCreatePlayer, this);
             this.game = new Game(1, "ddz");
+            EventDispatcher.listen(EventType.MSG_DDZ_PLAYER_CONNECTED, this.onCreatePlayer, this);
+            EventDispatcher.listen(EventType.MSG_DDZ_PLAYER_DISCONNECT, this.game.onDisconnect,this);
 
         },
         onCreatePlayer: function (session) {
@@ -93,6 +94,7 @@ let Gp;
             player.register(EventType.MSG_DDZ_ALL_TABLES, this.game.onMsg);
             player.register(EventType.MSG_DDZ_GAME_OVER, this.game.onMsg);
             player.register(EventType.MSG_DDZ_PLAYER_LEAVE, this.game.onMsg);
+
         },
         onPlayerAuth: function (msg, player) {
             let cmd = msg["cmd"];
@@ -105,7 +107,7 @@ let Gp;
                 response["error_code"] = ERROR_CODE.CMD_ERROR;//cmd error
             } else {
                 if (player.socketId !== socketId) {
-                    response["error_code"] = ERROR_CODE.PLAYER_DOES_NOT_EXIST;//player doesnot exit
+                    response["error_code"] = ERROR_CODE.USER_DOES_NOT_EXIST;//player doesnot exit
                 } else {
                     if (token !== player.socketId) {
                         response["error_code"] = ERROR_CODE.TOKEN_ERROR;

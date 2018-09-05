@@ -32,7 +32,24 @@ proto.onMsg = function (msg) {
         console.error(msg);
     }
 };
+proto.onDisconnect=function(data){
+    let player = global.playerManager.getPlayerById(data.id);
+    let tableId = player.tableId;
+    console.log("game on disconnect");
+    if(tableId!==undefined){
+        let table = global.tableManager.getTableById(tableId);
+        if (table) {
+            table.onDisconnect(data);
+        } else {
 
+            console.log("找不到桌子" + data["tableId"]);
+            console.error(data);
+        }
+    }else {
+        console.log("不在房间断开");
+    }
+
+},
 // 其他接口
 module.exports = Game;
 

@@ -8,6 +8,7 @@ const Player = require("../common/player");
 const EventType = require("../common/event_type");
 const LOG = require("../log/jl_log");
 const axios = require("axios");
+
 function Server(port) {
 
     this.port = port;
@@ -39,7 +40,11 @@ proto.init = function () {
         // dict
         self.session[session.id] = session;
         EventDispatcher.trigger(EventType.MSG_DDZ_PLAYER_CONNECTED, session);
+        socket.on("disconnect", function () {
+            EventDispatcher.trigger(EventType.MSG_DDZ_PLAYER_DISCONNECT, session);
+            console.log("player disconnect");
 
+        });
         //socket.emit(EventType.MSG_DDZ_ALL_TABLES,{tables:tables});
         // LOG.Debug("all tables");
         // EventDispatcher.trigger(EventType.MSG_DDZ_PLAYER_CONNECTED, player);
