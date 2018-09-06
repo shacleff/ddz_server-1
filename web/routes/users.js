@@ -10,6 +10,7 @@ const jwt = require('jsonwebtoken');
 const pool = mysql.createPool(Config.mysql);
 // 响应一个JSON数据
 let responseJSON = function (res, ret) {
+    res.setHeader("Access-Control-Allow-Origin","http:127.0.0.1:3001");
     res.json(ret);
 };
 // 添加用户
@@ -58,6 +59,7 @@ router.post('/login', function (req, res, next) {
     // 从连接池获取连接
     pool.getConnection(function (err, connection) {
         const md5 = crypto.createHash('md5');
+        console.log(req.body);
         let pwd_hash = md5.update(req.body.password).digest("hex");
         connection.query(userSQL.findByUsernameAndPassword, [req.body.username, pwd_hash], function (err, result) {
             console.log(result[0]);
