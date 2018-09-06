@@ -4,9 +4,11 @@ const Global = require("./game/table_manager");
 const Gp = require("./common/player_manager");
 
 
+
 function init() {
     let tableManager = new Global.TableManager();
     let playerManager = new Gp.PlayerManager();
+    
     global.tableManager = tableManager;
     global.tableManager.init();
     global.playerManager = playerManager;

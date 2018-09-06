@@ -1,13 +1,11 @@
-const TableManager = require("../game/table_manager");
 const app = require("./app");
 const server = require('http').createServer(app);
 const io = require('socket.io')(server);
 const EventDispatcher = require("../common/event_dispatcher");
 const Session = require("../common/session");
-const Player = require("../common/player");
 const EventType = require("../common/event_type");
 const LOG = require("../log/jl_log");
-const axios = require("axios");
+const config = require('./config');
 
 function Server(port) {
 
@@ -20,7 +18,7 @@ let proto = Server.prototype;
 
 proto.start = function () {
 
-    server.listen(this.port);
+    server.listen(this.port,config.server.host);
     this.init();
 };
 proto.stop = function () {
@@ -45,10 +43,7 @@ proto.init = function () {
             console.log("player disconnect");
 
         });
-        //socket.emit(EventType.MSG_DDZ_ALL_TABLES,{tables:tables});
-        // LOG.Debug("all tables");
-        // EventDispatcher.trigger(EventType.MSG_DDZ_PLAYER_CONNECTED, player);
-
+        
     });
 };
 module.exports = Server;

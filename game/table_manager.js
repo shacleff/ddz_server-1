@@ -18,7 +18,6 @@ let Global;
         _tables: {},
         // 可以在app.js中初始化
         init: function () {
-            console.log("init table");
             // 这里可以在服务器启动时直接创建出很多桌子。
             for (let i = 0; i < 100; i++) {
                 let type = 0, id = this._generatedId();
