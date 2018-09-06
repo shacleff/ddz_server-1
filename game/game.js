@@ -42,8 +42,7 @@ proto.onDisconnect=function(data){
             table.onDisconnect(data);
         } else {
 
-            console.log("找不到桌子" + data["tableId"]);
-            console.error(data);
+            console.log("从大厅断开");
         }
     }else {
         console.log("不在房间断开");

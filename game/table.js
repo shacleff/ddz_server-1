@@ -199,8 +199,8 @@ Table.prototype.onDisconnect=function(data){
     let player = global.playerManager.getPlayerById(data.id);
     let i = this._playerList.indexOf(player);
     player.leaveTable(player.tableId);
-    console.log(player.seatId + "：断开了链接链接," + " 剩余玩家人数: " + this._playerList.length);
     this._playerList.splice(i, 1);
+    console.log("座位号:"+ i + "的玩家断开了链接链接," + " 剩余玩家人数: " + this._playerList.length);
 },
 Table.prototype.startTimer = function (callback, interval, repeat, delay) {
     // 启动一个定时器

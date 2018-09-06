@@ -11,7 +11,7 @@ function Player(session) {
     // 都要通过addChip()这种方式修改。未来如果有多线程，也可以做原子性操作的控制。（加锁或者事务的方式）
     // 这样加个数据库，就可以在各个接口函数判断属性是否发生改变，如果改变，则写入数据库并将需要同步给客户端的信息同步出去
     this.name = "jdakfdja;";
-    this.coin = Math.random() * 10000;
+    this.coin = Math.floor(Math.random() * 10000);
     this.gender = Player.GENDER.SECRET;
     this.team = 0;
     // 用来记录玩家在服务器中的位置。如果是多线程，需要考虑异步的问题，因为玩家可能出于‘正在进入某个游戏的状态’

@@ -29,8 +29,6 @@ let Gp;
             LOG.Debug('connection incoming!');
             let player = new Player(session);
             this.players[player.socketId] = player;
-
-            LOG.Debug('player.name: ' + player.getName() + ' player.accountId: ' + player.accountId);
             player.register(EventType.MSG_DDZ_REGISTER, this.playerRegister, this);
             player.register(EventType.MSG_DDZ_LOGIN, this.onPlayerAuth, this);
         },
@@ -87,12 +85,22 @@ let Gp;
 
         onAutherror_code: function (player) {
             this.initPlayer(player);
+            /*
+            *todo
+            *此处通过playerId找玩家所属的table，通过msg['cmd']在table里触发函数是多余的，
+            * 此处已经定义了事件名字，可以直接根据事件名触发事件
+            * 后期需要修改
+            */
             player.register(EventType.MSG_DDZ_ENTER_TABLE, this.game.onMsg);
             player.register(EventType.MSG_DDZ_PLAYER_PREPARED, this.game.onMsg);
             player.register(EventType.MSG_DDZ_DISCARD, this.game.onMsg);
             player.register(EventType.MSG_DDZ_PASS, this.game.onMsg);
             player.register(EventType.MSG_DDZ_ALL_TABLES, this.game.onMsg);
             player.register(EventType.MSG_DDZ_GAME_OVER, this.game.onMsg);
+            player.register(EventType.MSG_DDZ_CALL_LANDLORD, this.game.onMsg);
+            player.register(EventType.MSG_DDZ_NO_CALL_LANDLORD, this.game.onMsg);
+            player.register(EventType.MSG_DDZ_ROB_LANDLORD, this.game.onMsg);
+            player.register(EventType.MSG_DDZ_NO_ROB_LANDLORD, this.game.onMsg);
             player.register(EventType.MSG_DDZ_PLAYER_LEAVE, this.game.onMsg);
 
         },
