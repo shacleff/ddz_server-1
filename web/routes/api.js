@@ -16,7 +16,7 @@ router.use(function (req, res, next) {
         jwt.verify(token, Config.jwtsecret, function (err, decoded) {
             if (err) {
                 response = {
-                    error_code: -7,
+                    error_code: ERROR_CODE.TOKEN_ERROR,
                     msg: 'token过期或错误'
                 };
                 responseJSON(res, response);
@@ -35,7 +35,7 @@ router.use(function (req, res, next) {
     } else {
         response = {
             error_code: -9,
-            msg: '没收到token'
+            msg: ERROR_CODE.TOKEN_ERROR
         };
         responseJSON(res, response);
     }
