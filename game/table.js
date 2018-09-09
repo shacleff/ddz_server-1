@@ -14,11 +14,12 @@ function Table(type, id) {
     this._type = type; // 桌子类型
     this._id = id; // 全局唯一的桌子ID
 
-    this._playerList = [];
+    this._playerList = [];//玩家列表
     this._dipai = [];
-    this.landlord = -1;
-    this.times = -1;
+    this.landlord = -1;//地主座位号
+    this.times = 1;//倍数
     this._preparedList = [];
+    this.record = [];
 
 }
 
@@ -29,7 +30,6 @@ Table.prototype.onMsg = function (msg) {
     console.log("table onMsg: " + JSON.stringify(msg));
     switch (cmd) {
         case 'discard':
-            console.log("discard");
             this.discard(msg);
             break;
         case 'pass':
@@ -38,9 +38,23 @@ Table.prototype.onMsg = function (msg) {
             break;
         case 'prepare':
             // 准备
-            console.log("zhubei");
-            console.log(msg);
             this.prepare(msg);
+            break;
+        case 'call_landlord':
+            // 准备
+            this.callLandlord(msg);
+            break;
+        case 'no_call_landlord':
+            // 准备
+            this.noCallLandlord(msg);
+            break;
+        case 'rob_landlord':
+            // 准备
+            this.robLandlord(msg);
+            break;
+        case 'no_rob_landlord':
+            // 准备
+            this.noRobLandlord(msg);
             break;
         // 可以添加更多相关的接口
         case 'start':
@@ -67,8 +81,8 @@ Table.prototype.startGame = function () {
 
 Table.prototype.endGame = function (msg) {
     // 游戏结束，开始结算
-    console.log(msg);
-    this._preparedList=[];
+    this._preparedList = [];
+    this.record = [];
     let player = global.playerManager.getPlayerById(msg["playerId"]);
     player.broadcastMsg(player.tableId, EventType.MSG_DDZ_GAME_OVER, {team: player.team, info: "game over"});//seatId为出完牌的玩家座位号
     //结束比赛后其他操作，比如写入数据库
@@ -78,15 +92,12 @@ Table.prototype.dealPoker = function () {
     // 发牌
     this.generatePokers();
     // 这个地方最好使用广播的借口，而且发送消息最好不要在这个‘发牌函数’内进行。‘发牌’就只做‘发牌’，未来可以添加其他的发牌机制，就只用修改这个方法就可以了
-    let landlord_index = Math.floor(Math.random() * 3);
-    this.landlord = landlord_index;
-    this._playerList[landlord_index].setTeam(1);
+    this.landlord_index = Math.floor(Math.random() * 3);//开始随机选择一个人开始叫地主
+    // this._playerList[landlord_index].setTeam(1);
     for (var i = 0; i < this._playerList.length; i++) {
         console.log("给第" + (i + 1) + "个玩家发牌");
-        console.log(this.threePlayerPokers[i])
-        console.log(this._playerList[i].socketId);
         this._playerList[i].sendMsg(EventType.MSG_DDZ_DEAL_POKER, {
-            landlord: landlord_index,
+            startP: this.landlord_index,
             pokers: this.threePlayerPokers[i],
             dipai: this._dipai
         });
@@ -97,8 +108,6 @@ Table.prototype.generatePokers = function () {
     this.threePlayerPokers = [];
     this.pokers = new PokerSets(1, true).getPokers();//生成一副牌，带大小王
     let allPokers = this.pokers;
-    console.log("generate pokers");
-    console.log(this.pokers);
     for (let i = 0; i < 3; i++) {//生成2个17张的扑克组合并放入3个玩家扑克的数组中
         let bodyPokerDataItem = [];
         for (let j = 0; j < 17; j++) {
@@ -123,9 +132,8 @@ Table.prototype.joinTable = function (msg) {
      * 2. 将玩家加入玩家列表(this._playerList)；
      * 3. 不能直接从外部直接将玩家加入_playerList
      */
-    // 通过方法访问，getPlayerById(id) getPlayers(ids) getAllPlayer();
-    // 不要通过属性访问
-    console.log(msg);
+        // 通过方法访问，getPlayerById(id) getPlayers(ids) getAllPlayer();
+        // 不要通过属性访问
     let player = global.playerManager.getPlayerById(msg["playerId"]);
     let all = [];
     for (let i = 0, len = this._playerList.length; i < len; i++) {
@@ -141,7 +149,6 @@ Table.prototype.joinTable = function (msg) {
     player.broadcastMsg(player.tableId, EventType.MSG_DDZ_ENTER_TABLE, {
         seatId: this._playerList.indexOf(player),
         player: player.accountId
-
     });
     //通知桌子内其他玩家，信息为本玩家的信息，以及位置
 
@@ -158,8 +165,117 @@ Table.prototype.prepare = function (data) {
         }, 3000);
     }
 };
+Table.prototype.cal = function () {//计算叫地主是否完成
+    console.log(this.record);
+    if (this.record.length < 3) {
+        return false;
+    } else if (this.record.length === 3) {
+        if (this.record[0] === 1 && this.record[1] === 0 && this.record[2] === 0) {
+            this.landlord = this.landlord_index;
+            this._playerList[this.landlord].setTeam(1);
+            return true;
+        }
+        else if (this.record[0] === 0 && this.record[1] === 1 && this.record[2] === 0) {
+            this.landlord = (this.landlord_index + 1) % 3;
+            this._playerList[this.landlord].setTeam(1);
+            return true;
+        }
+        else if (this.record[0] === 0 && this.record[1] === 0 && this.record[2] === 1) {
+            this.landlord = (this.landlord_index + 2) % 3;
+            this._playerList[this.landlord].setTeam(1);
+            return true;
+        } else if (this.record[0] === 0 && this.record[1] === 1 && this.record[2] === 1) {
+        } else {
+            return false;
+        }
+    } else if (this.record.length === 4) {
+        if (this.record[3] === 1 && this.record[0] === 1) {
+            this.landlord = this.landlord_index;
+            this._playerList[this.landlord].setTeam(1);
+            return true;
+        } else if (this.record[0] === 1 && this.record[1] === 1 && this.record[2] === 0 && this.record[3] === 0) {
+            this.landlord = (this.landlord_index + 1) % 3;
+            this._playerList[this.landlord].setTeam(1);
+            return true;
+        } else if (this.record[0] === 0 && this.record[1] === 1 && this.record[2] === 1 && this.record[3] === 1) {
+            this.landlord = (this.landlord_index + 1) % 3;
+            this._playerList[this.landlord].setTeam(1);
+            return true;
+        } else if (this.record[0] === 0 && this.record[1] === 1 && this.record[2] === 1 && this.record[3] === 0) {
+            this.landlord = (this.landlord_index + 2) % 3;
+            this._playerList[this.landlord].setTeam(1);
+            return true;
+        } else if (this.record[0] === 1 && this.record[1] === 0 && this.record[2] === 1 && this.record[3] === 0) {
+            this.landlord = (this.landlord_index + 2) % 3;
+            this._playerList[this.landlord].setTeam(1);
+            return true;
+        } else if (this.record[0] === 1 && this.record[1] === 1 && this.record[2] === 1 && this.record[3] === 0) {
+            this.landlord = (this.landlord_index + 2) % 3;
+            this._playerList[this.landlord].setTeam(1);
+            return true;
+        }
+        else {
+            this.landlord = (this.landlord_index + 2) % 3;
+            this._playerList[this.landlord].setTeam(1);
+            return true;
+        }
+    }
+
+
+};
+Table.prototype.sendToAll = function (cmd, msg) {
+    for (let i = 0; i < this._playerList.length; i++) {
+        this._playerList[i].sendMsg(cmd, msg);
+    }
+
+};
+Table.prototype.callLandlord = function (data) {
+    let player = global.playerManager.getPlayerById(data["playerId"]);
+    player.broadcastMsg(player.tableId, EventType.MSG_DDZ_CALL_LANDLORD, {seatId: this._playerList.indexOf(player)});
+    this.record.push(1);
+};
+Table.prototype.noCallLandlord = function (data) {
+
+
+    this.record.push(0);
+    if (this.cal()) {
+        //开始
+        let msg = {landlord: this.landlord};
+        this.sendToAll(EventType.MSG_DDZ_START, msg)
+    } else {
+        let player = global.playerManager.getPlayerById(data["playerId"]);
+        player.broadcastMsg(player.tableId, EventType.MSG_DDZ_NO_CALL_LANDLORD, {seatId: this._playerList.indexOf(player)});
+    }
+};
+Table.prototype.robLandlord = function (data) {
+    this.record.push(1);
+
+    if (this.cal()) {
+        //开始
+        let msg = {landlord: this.landlord};
+        this.sendToAll(EventType.MSG_DDZ_START, msg)
+    } else {
+        let player = global.playerManager.getPlayerById(data["playerId"]);
+        player.broadcastMsg(player.tableId, EventType.MSG_DDZ_ROB_LANDLORD, {seatId: this._playerList.indexOf(player)});
+    }
+
+};
+Table.prototype.noRobLandlord = function (data) {
+    if(!data['status']){
+
+        this.record.push(0);
+    }
+    if (this.cal()) {  //开始
+        let msg = {landlord: this.landlord};
+        this.sendToAll(EventType.MSG_DDZ_START, msg)
+    } else {
+        let player = global.playerManager.getPlayerById(data["playerId"]);
+        player.broadcastMsg(player.tableId, EventType.MSG_DDZ_ROB_LANDLORD, {seatId: this._playerList.indexOf(player)});
+    }
+};
+
+
 Table.prototype.pass = function (data) {
-    console.log(data);
     let player = global.playerManager.getPlayerById(data["playerId"]);
     player.broadcastMsg(player.tableId, EventType.MSG_DDZ_PASS, {seatId: this._playerList.indexOf(player)});
 };
@@ -195,13 +311,15 @@ Table.prototype.leaveTable = function (msg) {
     console.log(player.seatId + "：离开了房间," + " 剩余玩家人数: " + this._playerList.length);
 
 };
-Table.prototype.onDisconnect=function(data){
+Table.prototype.onDisconnect = function (data) {
     let player = global.playerManager.getPlayerById(data.id);
     let i = this._playerList.indexOf(player);
     player.leaveTable(player.tableId);
     this._playerList.splice(i, 1);
-    console.log("座位号:"+ i + "的玩家断开了链接链接," + " 剩余玩家人数: " + this._playerList.length);
-},
+    console.log("座位号:" + i + "的玩家断开了链接链接," + " 剩余玩家人数: " + this._playerList.length);
+};
+
+
 Table.prototype.startTimer = function (callback, interval, repeat, delay) {
     // 启动一个定时器
     var timer = new Timer();	// Timer也是一个基础类，可以找下js有没有一些好的类库，已经封装了Timer,也可以用setTimerout, setInterval自己封装下

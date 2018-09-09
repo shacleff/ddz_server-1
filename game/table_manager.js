@@ -44,8 +44,6 @@ let Global;
             for (let k in this._tables){
                 tables.push(this._tables[k]._id)
             }
-
-            console.log('tables: ' + tables.join(','));
             return tables;
         },
         _createTable: function (type, id) {
