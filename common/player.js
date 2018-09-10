@@ -23,13 +23,10 @@ function Player(session) {
 
 Player.prototype = {
     sendMsg: function (cmd, msg) {
-        console.log(cmd);
         this.socket.emit(cmd, msg);
     },
 
     joinTable: function (tableId) {
-        // 不是有个sendMsg的借口吗？ sendMsg({cmd:'joinTable', params: {}});
-        // socket.join是做什么的
         this.socket.join(tableId);//socketio的加入房间Api
     },
     leaveTable: function (tableId) {
@@ -37,7 +34,6 @@ Player.prototype = {
     },
     //给房间广播
     broadcastMsg: function (tableId, cmd, msg) {
-        console.log("广播消息" + cmd);
         this.socket.to(tableId).emit(cmd, msg);
     },
     register: function (cmd, callback, scope) {

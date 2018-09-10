@@ -84,7 +84,7 @@ Table.prototype.endGame = function (msg) {
     this._preparedList = [];
     this.record = [];
     let player = global.playerManager.getPlayerById(msg["playerId"]);
-    player.broadcastMsg(player.tableId, EventType.MSG_DDZ_GAME_OVER, {team: player.team, info: "game over"});//seatId为出完牌的玩家座位号
+    player.broadcastMsg(player.tableId, EventType.MSG_DDZ_GAME_OVER, { team: player.team, info: "game over" });//seatId为出完牌的玩家座位号
     //结束比赛后其他操作，比如写入数据库
 };
 
@@ -94,6 +94,7 @@ Table.prototype.dealPoker = function () {
     // 这个地方最好使用广播的借口，而且发送消息最好不要在这个‘发牌函数’内进行。‘发牌’就只做‘发牌’，未来可以添加其他的发牌机制，就只用修改这个方法就可以了
     this.landlord_index = Math.floor(Math.random() * 3);//开始随机选择一个人开始叫地主
     // this._playerList[landlord_index].setTeam(1);
+    console.log("座位号:"+ this.landlord_index+" 为开始玩家");
     for (var i = 0; i < this._playerList.length; i++) {
         console.log("给第" + (i + 1) + "个玩家发牌");
         this._playerList[i].sendMsg(EventType.MSG_DDZ_DEAL_POKER, {
@@ -132,15 +133,15 @@ Table.prototype.joinTable = function (msg) {
      * 2. 将玩家加入玩家列表(this._playerList)；
      * 3. 不能直接从外部直接将玩家加入_playerList
      */
-        // 通过方法访问，getPlayerById(id) getPlayers(ids) getAllPlayer();
-        // 不要通过属性访问
+    // 通过方法访问，getPlayerById(id) getPlayers(ids) getAllPlayer();
+    // 不要通过属性访问
     let player = global.playerManager.getPlayerById(msg["playerId"]);
     let all = [];
     for (let i = 0, len = this._playerList.length; i < len; i++) {
-        all.push({index: i, player: this._playerList[i].accountId});//
+        all.push({ index: i, player: this._playerList[i].accountId });//
     }
     setTimeout(function () {
-        player.sendMsg(EventType.MSG_DDZ_ENTER_TABLE, {allPlayers: all});//发送给自己，信息为已连接的玩家
+        player.sendMsg(EventType.MSG_DDZ_ENTER_TABLE, { allPlayers: all });//发送给自己，信息为已连接的玩家
     }, 1000);
 
     this._playerList.push(player);
@@ -156,7 +157,7 @@ Table.prototype.joinTable = function (msg) {
 Table.prototype.prepare = function (data) {
     let player = global.playerManager.getPlayerById(data["playerId"]);
     this._preparedList.push(this._playerList.indexOf(player));
-    player.sendMsg(EventType.MSG_DDZ_PLAYER_PREPARED, {seatId: player.seatId});
+    player.sendMsg(EventType.MSG_DDZ_PLAYER_PREPARED, { seatId: player.seatId });
     if (this._preparedList.length === 3) {
         let self = this;
         setTimeout(function () {//延迟三秒发牌，太快客户端事件绑定可能还未完成....
@@ -185,6 +186,7 @@ Table.prototype.cal = function () {//计算叫地主是否完成
             this._playerList[this.landlord].setTeam(1);
             return true;
         } else if (this.record[0] === 0 && this.record[1] === 1 && this.record[2] === 1) {
+
         } else {
             return false;
         }
@@ -230,57 +232,62 @@ Table.prototype.sendToAll = function (cmd, msg) {
 
 };
 Table.prototype.callLandlord = function (data) {
-    let player = global.playerManager.getPlayerById(data["playerId"]);
-    player.broadcastMsg(player.tableId, EventType.MSG_DDZ_CALL_LANDLORD, {seatId: this._playerList.indexOf(player)});
     this.record.push(1);
+    let player = global.playerManager.getPlayerById(data["playerId"]);
+    this.toShow = (this._playerList.indexOf(player) + 1) % 3;
+    player.broadcastMsg(player.tableId, EventType.MSG_DDZ_CALL_LANDLORD, { seatId: this._playerList.indexOf(player), toshow: this.toShow });
 };
 Table.prototype.noCallLandlord = function (data) {
-
-
+    let player = global.playerManager.getPlayerById(data["playerId"]);
+    this.toShow = (this._playerList.indexOf(player) + 1) % 3;
     this.record.push(0);
     if (this.cal()) {
         //开始
-        let msg = {landlord: this.landlord};
+        let msg = { landlord: this.landlord };
         this.sendToAll(EventType.MSG_DDZ_START, msg)
     } else {
-        let player = global.playerManager.getPlayerById(data["playerId"]);
-        player.broadcastMsg(player.tableId, EventType.MSG_DDZ_NO_CALL_LANDLORD, {seatId: this._playerList.indexOf(player)});
+        player.broadcastMsg(player.tableId, EventType.MSG_DDZ_NO_CALL_LANDLORD, { seatId: this._playerList.indexOf(player), toshow: this.toShow });
     }
 };
 Table.prototype.robLandlord = function (data) {
+    let player = global.playerManager.getPlayerById(data["playerId"]);
     this.record.push(1);
-
-    if (this.cal()) {
-        //开始
-        let msg = {landlord: this.landlord};
-        this.sendToAll(EventType.MSG_DDZ_START, msg)
+    if (this.record.length === 3) {
+        if (this.record[0] === 0, this.record[1] === 1, this.record[2] === 1) {
+            this.toShow = (this._playerList.indexOf(player) + 2) % 3;
+            player.broadcastMsg(player.tableId, EventType.MSG_DDZ_ROB_LANDLORD, { seatId: this._playerList.indexOf(player), toshow: this.toShow });
+        }
     } else {
-        let player = global.playerManager.getPlayerById(data["playerId"]);
-        player.broadcastMsg(player.tableId, EventType.MSG_DDZ_ROB_LANDLORD, {seatId: this._playerList.indexOf(player)});
+        this.toShow = (this._playerList.indexOf(player) + 1) % 3;
+        if (this.cal()) {
+            //开始
+            let msg = { landlord: this.landlord };
+            this.sendToAll(EventType.MSG_DDZ_START, msg)
+        } else {
+            player.broadcastMsg(player.tableId, EventType.MSG_DDZ_ROB_LANDLORD, { seatId: this._playerList.indexOf(player), toshow: this.toShow });
+        }
     }
+    
 
 };
 Table.prototype.noRobLandlord = function (data) {
-    if(!data['status']){
-
-        this.record.push(0);
-    }
+    let player = global.playerManager.getPlayerById(data["playerId"]);
+    this.record.push(0);
+    this.toShow = (this._playerList.indexOf(player) + 1) % 3;
     if (this.cal()) {  //开始
-        let msg = {landlord: this.landlord};
+        let msg = { landlord: this.landlord };
         this.sendToAll(EventType.MSG_DDZ_START, msg)
     } else {
-        let player = global.playerManager.getPlayerById(data["playerId"]);
-        player.broadcastMsg(player.tableId, EventType.MSG_DDZ_ROB_LANDLORD, {seatId: this._playerList.indexOf(player)});
+        player.broadcastMsg(player.tableId, EventType.MSG_DDZ_ROB_LANDLORD, { seatId: this._playerList.indexOf(player), toshow: this.toShow });
     }
 };
 
 
 Table.prototype.pass = function (data) {
     let player = global.playerManager.getPlayerById(data["playerId"]);
-    player.broadcastMsg(player.tableId, EventType.MSG_DDZ_PASS, {seatId: this._playerList.indexOf(player)});
+    player.broadcastMsg(player.tableId, EventType.MSG_DDZ_PASS, { seatId: this._playerList.indexOf(player) });
 };
 Table.prototype.discard = function (data) {
-    console.log(data);
     let player = global.playerManager.getPlayerById(data["playerId"]);
     let seatId = this._playerList.indexOf(player);
     let msg = {
@@ -288,8 +295,6 @@ Table.prototype.discard = function (data) {
         pokers: data["pokers"]
     };
     player.broadcastMsg(player.tableId, EventType.MSG_DDZ_DISCARD, msg);
-    //以下报错
-    //this.broadcastMsg(id,EventType.MSG_DDZ_CHU_PAI, data);
 };
 Table.prototype.broadcastMsg = function (id, cmd, msg) {
     // 根据idList找到所有的玩家，并广播消息
