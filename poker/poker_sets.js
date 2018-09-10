@@ -5,6 +5,7 @@ function PokerSets(pairs, containJoker) {
     this._pokers = [];
     this.generatePokers();
 }
+
 PokerSets.prototype.generatePokers = function () {
     /* 数据结构：
      * 一个byte标识一张poker
@@ -14,9 +15,9 @@ PokerSets.prototype.generatePokers = function () {
      * 对应16进制牌0x10,0x11,0x12,0x13,0x14,0x15,0x16,0x17,0x18,0x19,0x1A,0x1B,0x1C,0x4D,0x5E
      */
     // 几幅牌 不是pair吧
-    for (var p = 0; p < this.pairs; p++) {
-        for (var i = 0; i < 4; i++) {
-            for (var j = 0; j < 13; j++) {
+    for (let p = 0; p < this.pairs; p++) {
+        for (let i = 0; i < 4; i++) {
+            for (let j = 0; j < 13; j++) {
                 this._pokers.push("0x" + i + j.toString(16));
             }
         }
@@ -28,7 +29,7 @@ PokerSets.prototype.generatePokers = function () {
         }
     }
 };
-PokerSets.prototype.getPokers = function(){
+PokerSets.prototype.getPokers = function () {
     return this._pokers;
 }
 module.exports = PokerSets;
