@@ -12,6 +12,7 @@ const pool = mysql.createPool(Config.mysql);
 let responseJSON = function (res, ret) {
     res.json(ret);
 };
+
 // 添加用户
 router.post('/reg', function (req, res, next) {
     // 从连接池获取连接
