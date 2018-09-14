@@ -355,6 +355,7 @@ Table.prototype.leaveTable = function (msg) {
      */
     let player = global.playerManager.getPlayerById(msg["playerId"]);
     let i = this._playerList.indexOf(player);
+    player.broadcastMsg(player.tableId,EventType.MSG_DDZ_PLAYER_LEAVE,{seatId:i});
     this._playerList.splice(i, 1);
     player.leaveTable(player.tableId);
     console.log(player.seatId + "：离开了房间," + " 剩余玩家人数: " + this._playerList.length);
@@ -363,6 +364,7 @@ Table.prototype.leaveTable = function (msg) {
 Table.prototype.onDisconnect = function (data) {
     let player = global.playerManager.getPlayerById(data.id);
     let i = this._playerList.indexOf(player);
+    player.broadcastMsg(player.tableId,EventType.MSG_DDZ_PLAYER_LEAVE,{seatId:i});
     player.leaveTable(player.tableId);
     this._playerList.splice(i, 1);
     console.log("座位号:" + i + "的玩家断开了链接链接," + " 剩余玩家人数: " + this._playerList.length);
