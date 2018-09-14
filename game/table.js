@@ -162,7 +162,7 @@ Table.prototype.joinTable = function (msg) {
     this._playerList.push(player);
     player.joinTable(this._id);
     player.setTableId(this._id);
-    player.broadcastMsg(player.tableId, EventType.MSG_DDZ_ENTER_TABLE, {
+    player.broadcastMsg(player.tableId, EventType.MSG_DDZ_NEW_PLAYER, {
         seatId: this._playerList.indexOf(player),
         player: player.accountId
     });
