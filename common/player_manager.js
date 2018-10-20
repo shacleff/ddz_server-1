@@ -3,7 +3,7 @@ let EventDispatcher = require("./event_dispatcher");
 const EventType = require("./event_type");
 const Game = require("../game/game");
 const md5 = require("md5");
-const LOG = require("../log/jl_log");
+const Log = require("../common/Log");
 const Global = require("../game/table_manager");
 const ERROR_CODE = require("./error_code");
 
@@ -26,7 +26,7 @@ let Gp;
         },
         onCreatePlayer: function (session) {
             //
-            LOG.Debug('connection incoming!');
+            Log.info('connection incoming!');
             let player = new Player(session);
             this.players[player.socketId] = player;
             player.register(EventType.MSG_DDZ_REGISTER, this.playerRegister, this);
@@ -34,7 +34,7 @@ let Gp;
         },
 
         playerRegister: function (msg, player) {
-            LOG.Debug("playerRegister");
+            Log.info("playerRegister");
             let cmd = msg['cmd'];
             let response = {};
             if (cmd !== 'register') {
@@ -63,7 +63,7 @@ let Gp;
                                 }
                                 let pwdToken = password + token;
                                 let pwdMd5 = md5(password);
-                                LOG.Debug("pwd + Token: " + pwdToken + " pwdMd5: " + pwdMd5);
+                                Log.info("pwd + Token: " + pwdToken + " pwdMd5: " + pwdMd5);
                                 player.setPassword(pwdMd5);
                                 player.setName(username);
                                 response['player_info'] = this.packPlayerInfo(player);
@@ -76,7 +76,7 @@ let Gp;
             }
 
             player.sendMsg("RESP_DDZ_REGISTER", response);
-            LOG.Debug("send resp ddz _register");
+            Log.info("send resp ddz _register");
             setTimeout(function () {
                 player.sendMsg(EventType.MSG_DDZ_ALL_TABLES, {tables: [0, 1, 2, 3, 4]});
 
@@ -127,7 +127,7 @@ let Gp;
                                 response["error_code"] = ERROR_CODE.USERNAME_OR_PASSWORD_INCORRECT;//密码不正确
                             }
                             else {
-                                LOG.Debug("login error_codeess");
+                                Log.info("login error_codeess");
                                 response["error_code"] = ERROR_CODE.SUCCESS;
                                 response['player_info'] = this.packPlayerInfo(player);
                                 response["tables"] = global.tableManager.getAllTables();
@@ -139,7 +139,7 @@ let Gp;
             }
 
             player.sendMsg("RESP_DDZ_LOGIN", response);
-            LOG.Debug("resp ddz login");
+            Log.info("resp ddz login");
         },
 
         packPlayerInfo: function (player) {

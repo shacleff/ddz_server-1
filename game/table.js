@@ -1,8 +1,8 @@
 const PokerSets = require("../poker/poker_sets");
-const Util = require("../poker/util");
+const Util = require("../poker/Util");
 // const Player = require("../common/player");
 const EventType = require("../common/event_type");
-const LOG = require("../log/jl_log");
+const Log = require("../common/Log");
 
 
 /**
@@ -27,7 +27,7 @@ function Table(type, id) {
 Table.prototype.onMsg = function (msg) {
     // 所有的桌子接受的消息都投递到这个借口
     var cmd = msg["cmd"];
-    console.log("table onMsg: " + JSON.stringify(msg));
+    Log.info("table onMsg: " + JSON.stringify(msg));
     switch (cmd) {
         case 'discard':
             this.discard(msg);
@@ -96,9 +96,9 @@ Table.prototype.dealPoker = function () {
     // 这个地方最好使用广播的借口，而且发送消息最好不要在这个‘发牌函数’内进行。‘发牌’就只做‘发牌’，未来可以添加其他的发牌机制，就只用修改这个方法就可以了
     this.landlord_index = Math.floor(Math.random() * 3);//开始随机选择一个人开始叫地主
     // this._playerList[landlord_index].setTeam(1);
-    console.log("座位号:" + this.landlord_index + " 为开始玩家");
+    Log.info("座位号:" + this.landlord_index + " 为开始玩家");
     for (var i = 0; i < this._playerList.length; i++) {
-        console.log("给第" + (i + 1) + "个玩家发牌");
+        Log.info("给第" + (i + 1) + "个玩家发牌");
         this._playerList[i].sendMsg(EventType.MSG_DDZ_DEAL_POKER, {
             startP: this.landlord_index,
             pokers: this.threePlayerPokers[i],
@@ -177,7 +177,7 @@ Table.prototype.prepare = function (data) {
         let self = this;
         setTimeout(function () {//延迟三秒发牌，太快客户端事件绑定可能还未完成....
             self.startGame();
-            console.log("人数已满,开始发牌");
+            Log.info("人数已满,开始发牌");
         }, 3000);
     }
 };
@@ -273,7 +273,6 @@ Table.prototype.robLandlord = function (data) {
     this.record.push(1);
     console.log(this.record);
     if (this.record.length === 3) {
-        console.log('record length 3');
         if (this.record[0] === 0 && this.record[1] === 1 && this.record[2] === 1) {
             this.toShow = (this._playerList.indexOf(player) + 2) % 3;
             player.broadcastMsg(player.tableId, EventType.MSG_DDZ_ROB_LANDLORD, {
@@ -281,7 +280,6 @@ Table.prototype.robLandlord = function (data) {
                 toshow: this.toShow
             });
         } else {
-            console.log('haha');
             this.toShow = (this._playerList.indexOf(player) + 1) % 3;
             if (this.cal()) {
                 //开始
@@ -295,7 +293,6 @@ Table.prototype.robLandlord = function (data) {
             }
         }
     } else {
-        console.log('haha2');
         this.toShow = (this._playerList.indexOf(player) + 1) % 3;
         if (this.cal()) {
             //开始
@@ -358,7 +355,7 @@ Table.prototype.leaveTable = function (msg) {
     player.broadcastMsg(player.tableId,EventType.MSG_DDZ_PLAYER_LEAVE,{seatId:i});
     this._playerList.splice(i, 1);
     player.leaveTable(player.tableId);
-    console.log(player.seatId + "：离开了房间," + " 剩余玩家人数: " + this._playerList.length);
+    Log.warn(player.seatId + "：离开了房间," + " 剩余玩家人数: " + this._playerList.length);
 
 };
 Table.prototype.onDisconnect = function (data) {
@@ -367,7 +364,7 @@ Table.prototype.onDisconnect = function (data) {
     player.broadcastMsg(player.tableId,EventType.MSG_DDZ_PLAYER_LEAVE,{seatId:i});
     player.leaveTable(player.tableId);
     this._playerList.splice(i, 1);
-    console.log("座位号:" + i + "的玩家断开了链接链接," + " 剩余玩家人数: " + this._playerList.length);
+    Log.warn("座位号:" + i + "的玩家断开了链接链接," + " 剩余玩家人数: " + this._playerList.length);
 };
 
 

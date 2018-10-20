@@ -6,6 +6,8 @@ const config = require('./config');
 const path = require('path');
 const usersRouter = require('./routes/users');
 const api = require('./routes/api');
+const gameRouter = require('./routes/gameRouter');
+
 
 let app = express();
 
@@ -28,6 +30,7 @@ app.all('*', function(req, res, next) {
 
 app.use('/users', usersRouter);
 app.use('/api', api);
+app.use('/', gameRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

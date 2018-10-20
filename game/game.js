@@ -1,7 +1,7 @@
 const EventType = require("../common/event_type");
 const EventDispatcher = require("../common/event_dispatcher");
 const PlayerManager = require("../common/player_manager");
-
+const Log =require("../common/Log");
 function Game(id, gameName) {
     this.gameId = id;// 1 -> ddz
     this.gameName = gameName;
@@ -28,24 +28,24 @@ proto.onMsg = function (msg) {
         table.onMsg(msg);
     } else {
 
-        console.log("找不到桌子" + msg["tableId"]);
-        console.error(msg);
+        Log.warn("找不到桌子" + msg["tableId"]);
+        Log.error(msg);
     }
 };
 proto.onDisconnect=function(data){
     let player = global.playerManager.getPlayerById(data.id);
     let tableId = player.tableId;
-    console.log("game on disconnect");
+    Log.warn("game on disconnect");
     if(tableId!==undefined){
         let table = global.tableManager.getTableById(tableId);
         if (table) {
             table.onDisconnect(data);
         } else {
 
-            console.log("从大厅断开");
+            Log.warn("从大厅断开");
         }
     }else {
-        console.log("不在房间断开");
+        Log.warn("不在房间断开");
     }
 
 },

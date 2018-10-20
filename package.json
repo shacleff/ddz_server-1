@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node start"
+    "start": "node start.js"
   },
   "description": "ddz server",
   "author": {
@@ -25,6 +25,8 @@
     "mysql": "^2.16.0",
     "pug": "^2.0.0-beta6",
     "serve-favicon": "^2.3.0",
-    "socket.io": "^1.4.0"
+    "socket.io": "^1.4.0",
+    "log4js": "^3.0.6",
+    "knex": "^0.15.2"
   }
 }

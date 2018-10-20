@@ -1,4 +1,5 @@
 const EventType = require("./event_type");
+const knex = require("../web/db/db");
 
 function Player(session) {
     this.socket = session.socket;
@@ -7,9 +8,6 @@ function Player(session) {
     Player.ID++;
     this.tableId = null;
     this.password = null;
-    // 玩家身上的每个属性都非常重要。绝对不要这样赋值。
-    // 都要通过addChip()这种方式修改。未来如果有多线程，也可以做原子性操作的控制。（加锁或者事务的方式）
-    // 这样加个数据库，就可以在各个接口函数判断属性是否发生改变，如果改变，则写入数据库并将需要同步给客户端的信息同步出去
     this.nickname = "jdakfdja;";
     this.coin = Math.floor(Math.random() * 10000);
     this.gender = Player.GENDER.SECRET;
@@ -40,18 +38,18 @@ Player.prototype = {
         let self = this;
         self.socket.on(cmd, function (data) {
             if (callback) {
-                callback.call(scope,data, self);
+                callback.call(scope, data, self);
             }
         });
     },
     setTableId: function (id) {
         this.tableId = id;
     },
-    
+
     setTeam: function (team) {
         this.team = team;
     },
-    getCoin:function(){
+    getCoin: function () {
         return this.coin;
     },
     // 增加coin，都必要使用该接口，
