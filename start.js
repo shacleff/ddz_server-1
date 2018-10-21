@@ -15,7 +15,7 @@ function init() {
     let port = 3001;
     let myServer = new MyServer(port);
     myServer.start();
-    Log.info("服务器启动...")
+    Log.info("服务器已经启动")
 }
 
 // init

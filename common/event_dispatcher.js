@@ -51,7 +51,7 @@ let EventDispatcher = {
             let event = events[i];
 
             // todo 测试一下，是否可以将这个handler去掉
-            if (event.handler == handler) {
+            if (event.handler === handler) {
                 events.splice(i, 1);
             }
         }

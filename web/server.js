@@ -28,8 +28,6 @@ proto.init = function () {
     let self = this;
     io.on('connection', function (socket) {
         Log.info("socket connection established...");
-        // var clientIp = socket.getClientIp();    // ip + port
-        // var clientMACaddr = socket.getMACsocket();
         socket.emit("yourid", {id: socket.id});//给客户端发送其socket.id，使其创建对应的player
         let session = new Session(socket);
         // dict
@@ -42,4 +40,5 @@ proto.init = function () {
 
     });
 };
+
 module.exports = Server;

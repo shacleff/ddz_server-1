@@ -2,16 +2,15 @@ const express = require('express');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const bodyParser = require('body-parser');
-const config = require('./config');
+const Config = require('./config');
 const path = require('path');
 const usersRouter = require('./routes/users');
 const api = require('./routes/api');
 const gameRouter = require('./routes/gameRouter');
 
-
 let app = express();
 
-app.set('superSecret', config.jwtsecret); 
+app.set('superSecret', Config.JWT_SECRET);
 app.use(logger('dev'));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
@@ -27,7 +26,6 @@ app.all('*', function(req, res, next) {
     next();
 });
 
-
 app.use('/users', usersRouter);
 app.use('/api', api);
 app.use('/', gameRouter);
@@ -39,11 +37,7 @@ app.use(function (req, res, next) {
 
 // error handler
 app.use(function (err, req, res, next) {
-    // set locals, only providing error in development
     console.log(err);
-    // render the error page
-    // res.status(err.status || 500);
-    // res.render('error');
 });
 
 module.exports = app;
