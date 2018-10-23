@@ -1,14 +1,14 @@
 const EventType = require("./event_type");
 const knex = require("../web/db/db");
-
-function Player(session) {
-    this.socket = session.socket;
+const Log = require('./Log');
+function Player(socket) {
+    this.socket = socket;
     this.socketId = this.socket.id;
     this.accountId = Player.ID;
     Player.ID++;
     this.tableId = null;
     this.password = null;
-    this.nickname = "jdakfdja;";
+    this.nickname = "";
     this.coin = Math.floor(Math.random() * 10000);
     this.gender = Player.GENDER.SECRET;
     this.team = 0;
@@ -24,8 +24,9 @@ Player.prototype = {
         this.socket.emit(cmd, msg);
     },
 
-    joinTable: function (tableId) {
+     joinTable:function(tableId) {
         this.socket.join(tableId);//socketio的加入房间Api
+         Log.info("joint table "+tableId);
     },
     leaveTable: function (tableId) {
         this.socket.leave(tableId);

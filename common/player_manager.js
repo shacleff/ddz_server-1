@@ -20,77 +20,17 @@ let Gp;
 
         init: function () {
             this.game = new Game(1, "ddz");
+            Log.info("create players");
             EventDispatcher.listen(EventType.MSG_DDZ_PLAYER_CONNECTED, this.onCreatePlayer, this);
-            EventDispatcher.listen(EventType.MSG_DDZ_PLAYER_DISCONNECT, this.game.onDisconnect,this);
+            EventDispatcher.listen(EventType.MSG_DDZ_PLAYER_DISCONNECT, this.game.onDisconnect, this);
+
 
         },
         onCreatePlayer: function (session) {
             //
-            Log.info('connection incoming!');
+            Log.warn("onCreatePlayer");
             let player = new Player(session);
             this.players[player.socketId] = player;
-            player.register(EventType.MSG_DDZ_REGISTER, this.playerRegister, this);
-            player.register(EventType.MSG_DDZ_LOGIN, this.onPlayerAuth, this);
-        },
-
-        playerRegister: function (msg, player) {
-            Log.info("playerRegister");
-            let cmd = msg['cmd'];
-            let response = {};
-            if (cmd !== 'register') {
-                response['error_code'] = ERROR_CODE.CMD_ERROR; // cmd error
-            } else {
-                response['error_code'] = ERROR_CODE.SUCCESS;
-                let username = msg['username'];
-                let password = msg['password'];
-                let token = msg['token'];
-                let socketId = msg["socketId"];
-
-                if (player.socketId !== socketId) {
-                    response['error_code'] = ERROR_CODE.PLAYER_DOES_NOT_EXIST; // player not exists
-                } else {
-                    if (player.socketId !== token) {
-                        response["error_code"] = ERROR_CODE.TOKEN_ERROR;//token 不一致
-                    } else {
-                        if (password.length === 0 || username.length === 0) {
-                            response['error_code'] = ERROR_CODE.USERNAME_OR_PASSWORD_INCORRECT; // password or username error
-                        } else {
-                            if (password.length > 12) {
-                                response["error_code"] = ERROR_CODE.PASSWORD_TOO_LONG;//密码太长
-                            } else {
-                                while (password.length < 12) {
-                                    password += " ";
-                                }
-                                let pwdToken = password + token;
-                                let pwdMd5 = md5(password);
-                                Log.info("pwd + Token: " + pwdToken + " pwdMd5: " + pwdMd5);
-                                player.setPassword(pwdMd5);
-                                player.setName(username);
-                                response['player_info'] = this.packPlayerInfo(player);
-                                response["tables"] = global.tableManager.getAllTables();
-                                this.onAutherror_code(player);
-                            }
-                        }
-                    }
-                }
-            }
-
-            player.sendMsg("RESP_DDZ_REGISTER", response);
-            Log.info("send resp ddz _register");
-            setTimeout(function () {
-                player.sendMsg(EventType.MSG_DDZ_ALL_TABLES, {tables: [0, 1, 2, 3, 4]});
-
-            }, 2000);
-        },
-
-        onAutherror_code: function (player) {
-            this.initPlayer(player);
-            /*
-            *todo
-            *此处通过playerId找玩家所属的table，通过msg['cmd']在table里触发函数是多余的，
-            * 此处已经定义了事件名字，可以直接根据事件名触发事件
-            * 后期需要修改
-            */
             player.register(EventType.MSG_DDZ_ENTER_TABLE, this.game.onMsg);
             player.register(EventType.MSG_DDZ_PLAYER_PREPARED, this.game.onMsg);
             player.register(EventType.MSG_DDZ_DISCARD, this.game.onMsg);
@@ -103,43 +43,6 @@ let Gp;
             player.register(EventType.MSG_DDZ_NO_ROB_LANDLORD, this.game.onMsg);
             player.register(EventType.MSG_DDZ_PLAYER_LEAVE, this.game.onMsg);
 
-        },
-        onPlayerAuth: function (msg, player) {
-            let cmd = msg["cmd"];
-            let username = msg["username"];
-            let password = msg["password"];
-            let token = msg["token"];
-            let socketId = msg["socketId"];
-            let response = {};
-            if (cmd !== "login") {
-                response["error_code"] = ERROR_CODE.CMD_ERROR;//cmd error
-            } else {
-                if (player.socketId !== socketId) {
-                    response["error_code"] = ERROR_CODE.USER_DOES_NOT_EXIST;//player doesnot exit
-                } else {
-                    if (token !== player.socketId) {
-                        response["error_code"] = ERROR_CODE.TOKEN_ERROR;
-                    } else {
-                        if (username !== player.getName()) {
-                            response['error_code'] = ERROR_CODE.USERNAME_OR_PASSWORD_INCORRECT; // name error
-                        } else {
-                            if (player.getPassword() !== md5(password)) {
-                                response["error_code"] = ERROR_CODE.USERNAME_OR_PASSWORD_INCORRECT;//密码不正确
-                            }
-                            else {
-                                Log.info("login error_codeess");
-                                response["error_code"] = ERROR_CODE.SUCCESS;
-                                response['player_info'] = this.packPlayerInfo(player);
-                                response["tables"] = global.tableManager.getAllTables();
-                                this.onAutherror_code(player);
-                            }
-                        }
-                    }
-                }
-            }
-
-            player.sendMsg("RESP_DDZ_LOGIN", response);
-            Log.info("resp ddz login");
         },
 
         packPlayerInfo: function (player) {
@@ -166,13 +69,10 @@ let Gp;
             return players;
         },
 
-
         initPlayer: function (player) {
             player.setName(this._getRandomName());
             player.setGender("FEMALE");
         },
-
-
         _getRandomName: function () {
 
             let name = '';

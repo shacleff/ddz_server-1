@@ -94,9 +94,11 @@ Table.prototype.dealPoker = function () {
     //this.generatePokers();
     this.generateTestPokers();//测试
     // 这个地方最好使用广播的借口，而且发送消息最好不要在这个‘发牌函数’内进行。‘发牌’就只做‘发牌’，未来可以添加其他的发牌机制，就只用修改这个方法就可以了
-    this.landlord_index = Math.floor(Math.random() * 3);//开始随机选择一个人开始叫地主
+    //this.landlord_index = Math.floor(Math.random() * 3);//开始随机选择一个人开始叫地主
+    this.landlord_index = 2;//开始选择第三个玩家为地主
     // this._playerList[landlord_index].setTeam(1);
     Log.info("座位号:" + this.landlord_index + " 为开始玩家");
+    Log.warn(this._playerList)
     for (var i = 0; i < this._playerList.length; i++) {
         Log.info("给第" + (i + 1) + "个玩家发牌");
         this._playerList[i].sendMsg(EventType.MSG_DDZ_DEAL_POKER, {

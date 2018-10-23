@@ -32,7 +32,7 @@ proto.init = function () {
         let session = new Session(socket);
         // dict
         self.session[session.id] = session;
-        EventDispatcher.trigger(EventType.MSG_DDZ_PLAYER_CONNECTED, session);
+        EventDispatcher.trigger(EventType.MSG_DDZ_PLAYER_CONNECTED, socket);
         socket.on("disconnect", function () {
             EventDispatcher.trigger(EventType.MSG_DDZ_PLAYER_DISCONNECT, session);
             Log.warn("player disconnect");

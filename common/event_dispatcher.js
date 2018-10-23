@@ -1,3 +1,4 @@
+const Log = require("./Log");
 let EventDispatcher = {
 
     _eventMap: {},
@@ -12,7 +13,7 @@ let EventDispatcher = {
             return;
         }
         this._eventMap[eventName] = this._eventMap[eventName] || [];
-
+        Log.info(eventName+"   绑定....");
         this._eventMap[eventName].push({
             handler: handler,
             scope: scope
