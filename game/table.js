@@ -358,6 +358,7 @@ Table.prototype.leaveTable = function (msg) {
     this._playerList.splice(i, 1);
     player.leaveTable(player.tableId);
     Log.warn(player.seatId + "：离开了房间," + " 剩余玩家人数: " + this._playerList.length);
+    this.record = [];
 
 };
 Table.prototype.onDisconnect = function (data) {
